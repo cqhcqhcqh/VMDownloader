@@ -57,6 +57,12 @@
 		AFCAD1AF1CB38F7400F05C4E /* VMScreenLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = AFCAD1AD1CB38F7400F05C4E /* VMScreenLogger.m */; };
 		AFCAD1B41CB3927600F05C4E /* VMDownloaderManager.h in Headers */ = {isa = PBXBuildFile; fileRef = AFCAD1B21CB3927600F05C4E /* VMDownloaderManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AFCAD1B51CB3927600F05C4E /* VMDownloaderManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AFCAD1B31CB3927600F05C4E /* VMDownloaderManager.m */; };
+		AFCAD1B91CB3978200F05C4E /* Reachability.h in Headers */ = {isa = PBXBuildFile; fileRef = AFCAD1B71CB3978200F05C4E /* Reachability.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AFCAD1BA1CB3978200F05C4E /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = AFCAD1B81CB3978200F05C4E /* Reachability.m */; };
+		AFCAD1BF1CB3A23300F05C4E /* VMDownloadConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = AFCAD1BD1CB3A23300F05C4E /* VMDownloadConfig.h */; };
+		AFCAD1C01CB3A23300F05C4E /* VMDownloadConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = AFCAD1BE1CB3A23300F05C4E /* VMDownloadConfig.m */; };
+		AFCAD1C31CB3B2F100F05C4E /* VMSharedPreferences.h in Headers */ = {isa = PBXBuildFile; fileRef = AFCAD1C11CB3B2F100F05C4E /* VMSharedPreferences.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AFCAD1C41CB3B2F100F05C4E /* VMSharedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = AFCAD1C21CB3B2F100F05C4E /* VMSharedPreferences.m */; };
 		BA9AFCDF21641EA440545952DC2E2FDF /* DDContextFilterLogFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = E7D32D9AE8C52421682EFA9989E89458 /* DDContextFilterLogFormatter.m */; settings = {COMPILER_FLAGS = "-DOS_OBJECT_USE_OBJC=0"; }; };
 		BADBBB1BF5AA8A03A610BA30553DF8BD /* Pods-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 3971543F4D193AD0F145C455B2206D9E /* Pods-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BD3C7ABB0598A03B729F141633113043 /* FBSnapshotTestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CE64CE311D3E7EB8C0D6368DE8B4B01 /* FBSnapshotTestCase.m */; };
@@ -194,6 +200,12 @@
 		AFCAD1AD1CB38F7400F05C4E /* VMScreenLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VMScreenLogger.m; sourceTree = "<group>"; };
 		AFCAD1B21CB3927600F05C4E /* VMDownloaderManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VMDownloaderManager.h; sourceTree = "<group>"; };
 		AFCAD1B31CB3927600F05C4E /* VMDownloaderManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VMDownloaderManager.m; sourceTree = "<group>"; };
+		AFCAD1B71CB3978200F05C4E /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		AFCAD1B81CB3978200F05C4E /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
+		AFCAD1BD1CB3A23300F05C4E /* VMDownloadConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VMDownloadConfig.h; sourceTree = "<group>"; };
+		AFCAD1BE1CB3A23300F05C4E /* VMDownloadConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VMDownloadConfig.m; sourceTree = "<group>"; };
+		AFCAD1C11CB3B2F100F05C4E /* VMSharedPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VMSharedPreferences.h; sourceTree = "<group>"; };
+		AFCAD1C21CB3B2F100F05C4E /* VMSharedPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VMSharedPreferences.m; sourceTree = "<group>"; };
 		B05B280DA161C0BE51922FBF1F847013 /* Pods-Downloader_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Downloader_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		B117ED574BB480093D988973350D14D7 /* DDLog+LOGV.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "DDLog+LOGV.h"; path = "Classes/DDLog+LOGV.h"; sourceTree = "<group>"; };
 		B5F783189A2DB73DFA7C5AA4E997F0A4 /* Pods-Downloader_Example.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = "Pods-Downloader_Example.modulemap"; sourceTree = "<group>"; };
@@ -480,6 +492,8 @@
 		A9B6942AB0C9A5E31CAA9A967F921080 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				AFCAD1BC1CB3A22400F05C4E /* Config */,
+				AFCAD1B61CB3978200F05C4E /* Reachbility */,
 				660D65E9F00D6F7707DBC09B2BB2A968 /* HSM */,
 				A33C493CB934166A9A4635D4EB0C3687 /* VM */,
 			);
@@ -495,6 +509,26 @@
 				ECE5F2FE6263CE25FFE7CF677B27A576 /* Support Files */,
 			);
 			path = CocoaLumberjack;
+			sourceTree = "<group>";
+		};
+		AFCAD1B61CB3978200F05C4E /* Reachbility */ = {
+			isa = PBXGroup;
+			children = (
+				AFCAD1B71CB3978200F05C4E /* Reachability.h */,
+				AFCAD1B81CB3978200F05C4E /* Reachability.m */,
+			);
+			path = Reachbility;
+			sourceTree = "<group>";
+		};
+		AFCAD1BC1CB3A22400F05C4E /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				AFCAD1C11CB3B2F100F05C4E /* VMSharedPreferences.h */,
+				AFCAD1C21CB3B2F100F05C4E /* VMSharedPreferences.m */,
+				AFCAD1BD1CB3A23300F05C4E /* VMDownloadConfig.h */,
+				AFCAD1BE1CB3A23300F05C4E /* VMDownloadConfig.m */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		BF8614AAF0BA2830EFC6D35E28D2DF86 /* Development Pods */ = {
@@ -659,8 +693,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				97FB4092E554138C7A2F2BB4C52B14CF /* Downloader.h in Headers */,
+				AFCAD1B91CB3978200F05C4E /* Reachability.h in Headers */,
 				AFCAD1B41CB3927600F05C4E /* VMDownloaderManager.h in Headers */,
 				AFCAD1AE1CB38F7400F05C4E /* VMScreenLogger.h in Headers */,
+				AFCAD1BF1CB3A23300F05C4E /* VMDownloadConfig.h in Headers */,
+				AFCAD1C31CB3B2F100F05C4E /* VMSharedPreferences.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -896,7 +933,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AFCAD1BA1CB3978200F05C4E /* Reachability.m in Sources */,
 				5CF8F3114A3B4BB439BA6996F46B178D /* CPMessageOperation.swift in Sources */,
+				AFCAD1C41CB3B2F100F05C4E /* VMSharedPreferences.m in Sources */,
 				C3F0369810A0B424837EF0FC21377A9B /* CPMessagesQueue.swift in Sources */,
 				AFCAD1B51CB3927600F05C4E /* VMDownloaderManager.m in Sources */,
 				C06007698E8953FEB68FD3F8CC336BDD /* Downloader-dummy.m in Sources */,
@@ -907,6 +946,7 @@
 				7066C618B5ACA7E47C70338701AD9198 /* StateInfo.swift in Sources */,
 				37BF6896B6E7027E18E5B4E3E4D4680C /* StateMachine.swift in Sources */,
 				49A1DFCDFA7E04D254BE5A7EDC27960A /* VMDownloadTask.swift in Sources */,
+				AFCAD1C01CB3A23300F05C4E /* VMDownloadConfig.m in Sources */,
 				41A2B66913BA38186DE10645C13F0D34 /* VMState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

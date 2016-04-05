@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+@class VMDownloadTask,DownloadRequest;
 @interface VMDownloaderManager : NSObject
-
+- (instancetype)getInstance:(NSString *)key;
+- (VMDownloadTask *)enqueueWithDownloadRequest:(DownloadRequest *)request;
 @end

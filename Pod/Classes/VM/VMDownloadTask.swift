@@ -7,7 +7,17 @@
 //
 
 import UIKit
-
+class DownloadRequest: NSObject {
+    
+    var downloadPath:String!
+    var destinationFilePath : String!
+    var MD5Value:String!
+    
+    override init() {
+        super.init()
+    }
+    
+}
 class VMDownloadTask: StateMachine {
     var mInit:DownloadState?
     

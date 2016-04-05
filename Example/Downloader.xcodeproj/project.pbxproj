@@ -103,7 +103,6 @@
 			isa = PBXGroup;
 			children = (
 				60FF7A9C1954A5C5007DD14C /* Podspec Metadata */,
-				6003F593195388D20070C39A /* Example for Downloader */,
 				6003F5B5195388D20070C39A /* Tests */,
 				6003F58C195388D20070C39A /* Frameworks */,
 				6003F58B195388D20070C39A /* Products */,
@@ -185,6 +184,7 @@
 			children = (
 				1A557D051E6BF21E60C6904F /* Downloader.podspec */,
 				E41C485A7E183F3C6AAECCCB /* README.md */,
+				6003F593195388D20070C39A /* Example for Downloader */,
 				E81D589211D073920E023285 /* LICENSE */,
 			);
 			name = "Podspec Metadata";

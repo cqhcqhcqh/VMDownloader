@@ -8,12 +8,40 @@
 
 #import "VMAppDelegate.h"
 
+@interface Person: NSObject<NSCoding>
+@property (readwrite, nonatomic, copy) NSString *name;
+@end
+@implementation Person
+
+@end
 @import Downloader;
 
 @implementation VMAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    VMSharedPreferences *pf = [VMSharedPreferences sharedPreferencesWithIdentifier:@"qihan"];
+    [pf setInteger:22 forKey:@"he22"];
+    [pf synchronize];
+    
+    NSLog(@"%zd",[pf integerForKey:@"hehe233"]);
+    
+    /*
+    NSString *filePath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:@"preference.plist"];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+        [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
+    }
+    [@"heh" writeToFile:filePath atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    [@[@1,@2,@3] writeToFile:filePath atomically:YES];
+    [@{@"key":@"value"} writeToFile:filePath atomically:YES];
+//    Person *p = [Person new];
+//    p.name = @"qihan";
+//    
+//    [[NSUserDefaults standardUserDefaults] setObject:@[p] forKey:@"qihan"];
+    
+//    [NSKeyedArchiver archiveRootObject:<#(nonnull id)#> toFile:<#(nonnull NSString *)#>]
+     */
+    
     return YES;
 }
 
