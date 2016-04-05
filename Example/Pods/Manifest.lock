@@ -1,0 +1,31 @@
+PODS:
+  - CocoaLumberjack (2.2.0):
+    - CocoaLumberjack/Default (= 2.2.0)
+    - CocoaLumberjack/Extensions (= 2.2.0)
+  - CocoaLumberjack/Core (2.2.0)
+  - CocoaLumberjack/Default (2.2.0):
+    - CocoaLumberjack/Core
+  - CocoaLumberjack/Extensions (2.2.0):
+    - CocoaLumberjack/Default
+  - Downloader (0.1.0)
+  - FBSnapshotTestCase (2.1.0):
+    - FBSnapshotTestCase/SwiftSupport (= 2.1.0)
+  - FBSnapshotTestCase/Core (2.1.0)
+  - FBSnapshotTestCase/SwiftSupport (2.1.0):
+    - FBSnapshotTestCase/Core
+
+DEPENDENCIES:
+  - CocoaLumberjack
+  - Downloader (from `../`)
+  - FBSnapshotTestCase
+
+EXTERNAL SOURCES:
+  Downloader:
+    :path: ../
+
+SPEC CHECKSUMS:
+  CocoaLumberjack: 17fe8581f84914d5d7e6360f7c70022b173c3ae0
+  Downloader: 7a1fde500c97786e5f68db02b27353ce0415517c
+  FBSnapshotTestCase: 366ecd378511d7716c79991cd8067d1eed23578d
+
+COCOAPODS: 0.39.0
