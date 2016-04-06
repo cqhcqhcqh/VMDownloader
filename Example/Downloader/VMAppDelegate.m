@@ -17,15 +17,19 @@
 @import Downloader;
 
 @implementation VMAppDelegate
-
+- (void)userDefaultsDidChange:(NSNotification *)note
+{
+    
+}
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    VMSharedPreferences *pf = [VMSharedPreferences sharedPreferencesWithIdentifier:@"qihan"];
-    [pf setInteger:22 forKey:@"he22"];
-    [pf synchronize];
-    
-    NSLog(@"%zd",[pf integerForKey:@"hehe233"]);
-    
+//    VMSharedPreferences *pf = [VMSharedPreferences sharedPreferencesWithIdentifier:@"qihan"];
+//    [pf setInteger:22 forKey:@"he22"];
+//    [pf synchronize];
+//    
+//    NSLog(@"%zd",[pf integerForKey:@"hehe233"]);
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userDefaultsDidChange:) name:NSUserDefaultsDidChangeNotification object:nil];
+    [[NSUserDefaults standardUserDefaults] setObject:@"nihao" forKey:@"myKey"];
     /*
     NSString *filePath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:@"preference.plist"];
     if ([[NSFileManager defaultManager] fileExistsAtPath:filePath]) {

@@ -7,8 +7,6 @@
 //
 
 #import "VMSharedPreferences.h"
-#define PREFERENCEFILEDERECTORY [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject]
-#define FILEMANAGER [NSFileManager defaultManager]
 #define USERDEFAULT [NSUserDefaults standardUserDefaults]
 static NSString *PreferencesDefaultIdentifier = @"preferences";
 
@@ -35,7 +33,7 @@ static NSString *PreferencesDefaultIdentifier = @"preferences";
 {
     self = [super init];
     if (self) {
-        [self initFilePathWithIdentifier:PreferencesDefaultIdentifier];
+        [self configureWithIdentifier:PreferencesDefaultIdentifier];
     }
     return self;
 }
@@ -46,19 +44,14 @@ static NSString *PreferencesDefaultIdentifier = @"preferences";
             identifier = PreferencesDefaultIdentifier;
         }
         _identifer = identifier;
-        [self initFilePathWithIdentifier:_identifer];
+        [self configureWithIdentifier:_identifer];
     }
     return self;
 }
 
-- (void)initFilePathWithIdentifier:(NSString *)identifier {
+- (void)configureWithIdentifier:(NSString *)identifier {
     if(![USERDEFAULT objectForKey:identifier]) {
-        NSString *preferencesFilePath = [[PREFERENCEFILEDERECTORY stringByAppendingPathComponent:identifier] stringByAppendingPathExtension:@"plist"];
-        if (![FILEMANAGER fileExistsAtPath:preferencesFilePath]) {
-            [FILEMANAGER createFileAtPath:preferencesFilePath contents:nil attributes:nil];
-            [self.currentDict writeToFile:preferencesFilePath atomically:YES];
-        }
-        [USERDEFAULT setValue:preferencesFilePath.lastPathComponent forKey:identifier];
+        [USERDEFAULT setObject:self.currentDict forKey:identifier];
         [USERDEFAULT synchronize];
     }
 }
@@ -69,20 +62,17 @@ static NSString *PreferencesDefaultIdentifier = @"preferences";
 
 
 - (void)setInteger:(NSInteger)value forKey:(NSString *)key {
-    self.currentDict = [NSMutableDictionary dictionaryWithContentsOfFile:[self preferencesFile]];
+    self.currentDict = [USERDEFAULT dictionaryForKey:_identifer];
     [self.currentDict setValue:@(value) forKey:key];
 }
 
 - (NSInteger)integerForKey:(NSString *)key {
-    NSDictionary *dict = [NSMutableDictionary dictionaryWithContentsOfFile:[self preferencesFile]];
+    NSDictionary *dict = [USERDEFAULT dictionaryForKey:_identifer];
     return [dict[key] integerValue];
 }
 
 - (void)synchronize {
-    [self.currentDict writeToFile:[self preferencesFile] atomically:YES];
+    [USERDEFAULT synchronize];
 }
 
-- (NSString *)preferencesFile {
-    return [PREFERENCEFILEDERECTORY stringByAppendingPathComponent:[USERDEFAULT objectForKey:_identifer]];
-}
 @end

@@ -35,7 +35,7 @@ protocol CPMessageOperationDelegate {
 
 class CPMessageOperation: NSOperation {
     var message:CPMessage;
-    var sendDeviceCommondThread:NSThread!;
+    var runLoopThread:NSThread!;
     var delegate:CPMessageOperationDelegate?
     
     
@@ -73,20 +73,20 @@ class CPMessageOperation: NSOperation {
         super.init()
     }
     
-    static var sendDeviceCommondThread:NSThread = {
-        let thread =  NSThread(target: CPMessageOperation.self, selector: "sendDeviceCommondThreadEntryPoint:", object: nil);
-        thread.start();
-        return thread;
-    }();
+//    static var sendDeviceCommandThread:NSThread = {
+//        let thread =  NSThread(target: CPMessageOperation.self, selector: "sendDeviceCommandThreadEntryPoint:", object: nil);
+//        thread.start();
+//        return thread;
+//    }();
     
     
-    static func sendDeviceCommondThreadEntryPoint(thread:NSThread) ->() {
-        let currentThread = NSThread.currentThread();
-        currentThread.name = "SendDeviceCommond"
-        let currentRunLoop = NSRunLoop.currentRunLoop();
-        currentRunLoop.addPort(NSMachPort(), forMode: NSDefaultRunLoopMode);
-        currentRunLoop.run();
-    }
+//    static func sendDeviceCommandThreadEntryPoint(thread:NSThread) ->() {
+//        let currentThread = NSThread.currentThread();
+//        currentThread.name = "SendDeviceCommand"
+//        let currentRunLoop = NSRunLoop.currentRunLoop();
+//        currentRunLoop.addPort(NSMachPort(), forMode: NSDefaultRunLoopMode);
+//        currentRunLoop.run();
+//    }
     
     override func start() {
         
@@ -96,7 +96,7 @@ class CPMessageOperation: NSOperation {
             
         }else if self.ready {
             self.executing = true
-            self.performSelector("operationDidStart", onThread: CPMessageOperation.sendDeviceCommondThread, withObject: nil, waitUntilDone:false)
+            self.performSelector("operationDidStart", onThread: runLoopThread, withObject: nil, waitUntilDone:false)
         }
     }
     

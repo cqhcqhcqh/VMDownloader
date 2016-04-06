@@ -8,8 +8,8 @@
 
 import UIKit
 
-class StateMachine: NSObject {
-    
+public class StateMachine: NSObject {
+   public var runloopThread:NSThread?
 //    static var unconnectState:State =  {
 //        return UnconnectState()
 //    }()

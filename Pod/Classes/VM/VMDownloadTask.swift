@@ -7,7 +7,7 @@
 //
 
 import UIKit
-class DownloadRequest: NSObject {
+public class DownloadRequest: NSObject {
     
     var downloadPath:String!
     var destinationFilePath : String!
@@ -18,7 +18,8 @@ class DownloadRequest: NSObject {
     }
     
 }
-class VMDownloadTask: StateMachine {
+public class VMDownloadTask: StateMachine {
+    
     var mInit:DownloadState?
     
     var mStarted:DownloadState?
@@ -36,10 +37,15 @@ class VMDownloadTask: StateMachine {
     var mDone:DownloadState?
     var mSuccess:DownloadState?
     var mFailure:DownloadState?
-
-    override init() {
+    
+    var downloaderManager:VMDownloaderManager?
+    public init(runloopThread:NSThread?) {
         super.init()
-        
+        self.runloopThread = runloopThread
+        start()
+    }
+    
+   override func start() {
         mInit = Init(stateMachine: self)
         mStarted = Started(stateMachine: self)
         mDownloading = Downloading(stateMachine: self)
@@ -55,19 +61,19 @@ class VMDownloadTask: StateMachine {
         
         self.addState(mInit!, parentState: nil)
         
-            self.addState(mStarted!, parentState: mInit!)
-                self.addState(mDownloading!, parentState: mStarted!)
-                    self.addState(mRetry!, parentState: mDownloading!)
-                    self.addState(mOngoing!, parentState: mDownloading!)
-                self.addState(mWaiting!, parentState: mStarted!)
-            self.addState(mVerifying!, parentState: mInit!)
-            self.addState(mStopped!, parentState: mInit!)
+        self.addState(mStarted!, parentState: mInit!)
+        self.addState(mDownloading!, parentState: mStarted!)
+        self.addState(mRetry!, parentState: mDownloading!)
+        self.addState(mOngoing!, parentState: mDownloading!)
+        self.addState(mWaiting!, parentState: mStarted!)
+        self.addState(mVerifying!, parentState: mInit!)
+        self.addState(mStopped!, parentState: mInit!)
         
-                self.addState(mPaused!, parentState: mStopped!)
-                self.addState(mIOError!, parentState: mStopped!)
-            self.addState(mDone!, parentState: mInit!)
-                self.addState(mSuccess!, parentState: mDone!)
-                self.addState(mFailure!, parentState: mDone!)
+        self.addState(mPaused!, parentState: mStopped!)
+        self.addState(mIOError!, parentState: mStopped!)
+        self.addState(mDone!, parentState: mInit!)
+        self.addState(mSuccess!, parentState: mDone!)
+        self.addState(mFailure!, parentState: mDone!)
         
         mSmHandler.setInitialState(mStarted!)
         super.start()
