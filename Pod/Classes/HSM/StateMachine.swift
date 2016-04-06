@@ -4,24 +4,18 @@
 //
 //  Created by Cnepay on 15/11/2.
 //  Copyright © 2015年 Cnepay. All rights reserved.
-//
+//  
 
 import UIKit
 
 public class StateMachine: NSObject {
-   public var runloopThread:NSThread?
-//    static var unconnectState:State =  {
-//        return UnconnectState()
-//    }()
     
-//    var destiedState:CPState?
-//    var currentState:CPState!;
-//    
-//    
+   public var runloopThread:NSThread?
     var mSmHandler:SmHandler!;
     override init() {
+        super.init()
         mSmHandler = SmHandler()
-        
+        mSmHandler.runloopThread = runloopThread
     }
     
     func start() {
@@ -31,20 +25,7 @@ public class StateMachine: NSObject {
     func transitionTo(destState:State?) {
         self.mSmHandler.transitionTo(destState!);//.destState = destState
     }
-//
-//    
-//    lazy var deferredArray:Array<CPMessage> = [CPMessage]()
-//    
-//    func transitionState(){
-//        
-//        while destiedState != nil && self.currentState !== destiedState {
-//            self.currentState.exit();
-//            self.currentState = self.destiedState!
-//            self.currentState.enter()
-//        }
-//        self.destiedState = nil;
-//    }
-    
+
     func hasDeferredMessage(type:MESSAGETYPE) ->Bool {
         
         for message in self.mSmHandler.deferredArray {

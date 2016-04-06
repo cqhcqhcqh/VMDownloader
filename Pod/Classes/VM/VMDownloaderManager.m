@@ -4,7 +4,7 @@
 //  Pods
 //
 //  Created by chengqihan on 16/4/5.
-//
+//  Manager.thread -> Task(Thread) -> Task.Queue(Thread) -> Operation(Thread)
 //
 #import <Downloader/Downloader-Swift.h>
 #import "VMDownloaderManager.h"

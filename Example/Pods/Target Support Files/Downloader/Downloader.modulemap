@@ -1,5 +1,5 @@
 framework module Downloader {
-  umbrella header "Downloader.h"
+  umbrella header "Downloader-umbrella.h"
 
   export *
   module * { export * }

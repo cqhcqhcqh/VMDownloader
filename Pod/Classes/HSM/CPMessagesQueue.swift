@@ -10,7 +10,7 @@ import UIKit
 
 
 class CPMessagesQueue: NSOperationQueue {
-    
+    var runloopThread:NSThread?
     var lastOperation:CPMessageOperation?
     
     override init() {
@@ -20,6 +20,7 @@ class CPMessagesQueue: NSOperationQueue {
     
     func addOperationAtEndOfQueue(message:CPMessage) {
         let messageOperation = CPMessageOperation(message: message);
+        messageOperation.runLoopThread = self.runloopThread;
         messageOperation.delegate = self;
         
         if self.lastOperation != nil {
@@ -32,6 +33,7 @@ class CPMessagesQueue: NSOperationQueue {
     
     func addOperationAtFrontOfQueue(message:CPMessage) {
         let messageOperation = CPMessageOperation(message: message);
+        messageOperation.runLoopThread = self.runloopThread;
         messageOperation.delegate = self;
         
         for singleOperation in self.operations as! [CPMessageOperation] {
