@@ -9,14 +9,6 @@
 #import <Foundation/Foundation.h>
 
 @interface NSDate (NSString)
-///**
-// *  返回一个某种格式的时间字符串
-// *
-// *  @param formatterString 时间格式
-// *
-// *  @return 时间字符处
-// */
-//- (NSString *)dateWithFormatter:(NSString *)formatterString;
 
 
 /**
