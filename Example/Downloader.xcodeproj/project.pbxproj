@@ -357,7 +357,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#\"${SRCROOT}/Pods/Target Support Files/Pods/Pods-frameworks.sh\"\n";
+			shellScript = "#\"${SRCROOT}/Pods/Target Support Files/Pods-Downloader_Example/Pods-Downloader_Example-frameworks.sh\"\n#They should be embedded by the CocoaPods embed framework script, instead of putting them under embedded binaries in the Xcode project.";
 			showEnvVarsInLog = 0;
 		};
 		823B8DE482637422C1CDB856 /* Embed Pods Frameworks */ = {
