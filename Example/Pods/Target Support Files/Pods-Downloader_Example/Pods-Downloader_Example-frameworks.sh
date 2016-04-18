@@ -84,8 +84,12 @@ strip_invalid_archs() {
 
 
 if [[ "$CONFIGURATION" == "Debug" ]]; then
+  install_framework "Pods-Downloader_Example/FMDB.framework"
+  install_framework "Pods-Downloader_Example/AFNetworking.framework"
   install_framework "Pods-Downloader_Example/Downloader.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
+  install_framework "Pods-Downloader_Example/FMDB.framework"
+  install_framework "Pods-Downloader_Example/AFNetworking.framework"
   install_framework "Pods-Downloader_Example/Downloader.framework"
 fi

@@ -1,4 +1,19 @@
 PODS:
+  - AFNetworking (3.1.0):
+    - AFNetworking/NSURLSession (= 3.1.0)
+    - AFNetworking/Reachability (= 3.1.0)
+    - AFNetworking/Security (= 3.1.0)
+    - AFNetworking/Serialization (= 3.1.0)
+    - AFNetworking/UIKit (= 3.1.0)
+  - AFNetworking/NSURLSession (3.1.0):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/Reachability (3.1.0)
+  - AFNetworking/Security (3.1.0)
+  - AFNetworking/Serialization (3.1.0)
+  - AFNetworking/UIKit (3.1.0):
+    - AFNetworking/NSURLSession
   - CocoaLumberjack (2.2.0):
     - CocoaLumberjack/Default (= 2.2.0)
     - CocoaLumberjack/Extensions (= 2.2.0)
@@ -7,7 +22,9 @@ PODS:
     - CocoaLumberjack/Core
   - CocoaLumberjack/Extensions (2.2.0):
     - CocoaLumberjack/Default
-  - Downloader (0.1.0)
+  - Downloader (0.1.0):
+    - AFNetworking (~> 3.0)
+    - FMDB
   - FBSnapshotTestCase (2.1.0):
     - FBSnapshotTestCase/SwiftSupport (= 2.1.0)
   - FBSnapshotTestCase/Core (2.1.0)
@@ -28,8 +45,9 @@ EXTERNAL SOURCES:
     :path: ../
 
 SPEC CHECKSUMS:
+  AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
   CocoaLumberjack: 17fe8581f84914d5d7e6360f7c70022b173c3ae0
-  Downloader: 7a1fde500c97786e5f68db02b27353ce0415517c
+  Downloader: f07cc29ab418616e89316f35cf82df47dbbfd9ce
   FBSnapshotTestCase: 366ecd378511d7716c79991cd8067d1eed23578d
   FMDB: 854a0341b4726e53276f2a8996f06f1b80f9259a
 

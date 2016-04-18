@@ -1,1 +1,1 @@
-../../../../../Pod/Classes/VM/VMDownloaderManager.h
+../../../../../Pod/Classes/DownloadManager/VMDownloaderManager.h

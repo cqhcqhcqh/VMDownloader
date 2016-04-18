@@ -21,5 +21,13 @@
     "Downloader": [
       "Pod/Assets/*.png"
     ]
+  },
+  "dependencies": {
+    "FMDB": [
+
+    ],
+    "AFNetworking": [
+      "~> 3.0"
+    ]
   }
 }

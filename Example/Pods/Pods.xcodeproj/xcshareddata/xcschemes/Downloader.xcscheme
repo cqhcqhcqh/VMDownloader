@@ -14,7 +14,7 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = 'primary'
-               BlueprintIdentifier = '1ADAD4B6DE64E201601319A2'
+               BlueprintIdentifier = '93FE99309BEA84BD5F62325B'
                BlueprintName = 'Downloader'
                ReferencedContainer = 'container:Pods.xcodeproj'
                BuildableName = 'Downloader.framework'>
