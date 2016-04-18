@@ -24,9 +24,7 @@
 		AF519C621CC481110037B7BC /* VMViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AF519C611CC481110037B7BC /* VMViewController.m */; };
 		AF519C641CC4812F0037B7BC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AF519C631CC4812F0037B7BC /* Main.storyboard */; };
 		AF519C661CC482350037B7BC /* libsqlite3.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = AF519C651CC482350037B7BC /* libsqlite3.0.tbd */; };
-		AF519C6A1CC482480037B7BC /* AFNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF519C671CC482480037B7BC /* AFNetworking.framework */; };
 		AF519C6B1CC482480037B7BC /* Downloader.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF519C681CC482480037B7BC /* Downloader.framework */; };
-		AF519C6C1CC482480037B7BC /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF519C691CC482480037B7BC /* FMDB.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,9 +82,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AF519C6A1CC482480037B7BC /* AFNetworking.framework in Frameworks */,
 				AF519C6B1CC482480037B7BC /* Downloader.framework in Frameworks */,
-				AF519C6C1CC482480037B7BC /* FMDB.framework in Frameworks */,
 				AF519C661CC482350037B7BC /* libsqlite3.0.tbd in Frameworks */,
 				6003F590195388D20070C39A /* CoreGraphics.framework in Frameworks */,
 				6003F592195388D20070C39A /* UIKit.framework in Frameworks */,

@@ -8,8 +8,8 @@
 
 Pod::Spec.new do |s|
   s.name             = "Downloader"
-  s.version          = "0.1.0"
-  s.summary          = "A short description of Downloader."
+  s.version          = "0.0.1"
+  s.summary          = "这是我们的第一个支持本地私有库<Downloader>,请大家多多关照,多给建议和支持"
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -17,13 +17,14 @@ Pod::Spec.new do |s|
 #   * Write the description between the DESC delimiters below.
 #   * Finally, don't worry about the indent, CocoaPods strips it!  
   s.description      = <<-DESC
+                        A description of the Pod more detailed than the summary. 就是对当前lib的详细功能的详细描述吧。我猜的
                        DESC
 
-  s.homepage         = "https://github.com/<GITHUB_USERNAME>/Downloader"
+  s.homepage         = "https://chengqihan@git.vmovier.cc/scm/~chengqihan/downloaderlib"
   # s.screenshots     = "www.example.com/screenshots_1", "www.example.com/screenshots_2"
   s.license          = 'MIT'
   s.author           = { "chengqihan" => "chengqihan@vmovier.com" }
-  s.source           = { :git => "https://github.com/<GITHUB_USERNAME>/Downloader.git", :tag => s.version.to_s }
+  s.source           = { :git => "https://chengqihan@git.vmovier.cc/scm/~chengqihan/downloaderlib.git", :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.platform     = :ios, '7.0'
@@ -33,7 +34,7 @@ Pod::Spec.new do |s|
   s.resource_bundles = {
     'Downloader' => ['Pod/Assets/*.png']
   }
-
+  s.prefix_header_file = 'Example/Pods/Target Support Files/Downloader/Downloader-prefix.pch'
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
     s.dependency 'FMDB'
