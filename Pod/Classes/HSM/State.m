@@ -9,6 +9,7 @@
 #import "State.h"
 #import "StateMachine.h"
 #import "CPMessageOperation.h"
+#import "CPLoggerManager.h"
 
 @implementation State
 - (id)copyWithZone:(nullable NSZone *)zone {
@@ -32,12 +33,18 @@
 }
 
 -(void)enter
-{}
+{
+    NSString *desc = [NSString stringWithFormat:@"%@ ENTER.....",self.getName];
+    CPStateMechineLog(@"%@",desc);
+}
 
 
 
 -(void)exit
-{}
+{
+    NSString *desc = [NSString stringWithFormat:@"%@ EXIT....",self.getName];
+    CPStateMechineLog(@"%@",desc);
+}
 
 
 -(NSString *)getName

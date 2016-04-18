@@ -8,12 +8,6 @@
 
 #import "VMAppDelegate.h"
 
-@interface Person: NSObject<NSCoding>
-@property (readwrite, nonatomic, copy) NSString *name;
-@end
-@implementation Person
-
-@end
 @import Downloader;
 
 @implementation VMAppDelegate
@@ -23,6 +17,7 @@
 }
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    NSLog(@"%@",[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject]);
 //    VMSharedPreferences *pf = [VMSharedPreferences sharedPreferencesWithIdentifier:@"qihan"];
 //    [pf setInteger:22 forKey:@"he22"];
 //    [pf synchronize];

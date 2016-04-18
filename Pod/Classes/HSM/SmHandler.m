@@ -32,8 +32,6 @@
 @property (readwrite, nonatomic, assign) BOOL isConstructionCompleted;
 @property (readwrite, nonatomic, assign) NSInteger stateStackTopIndex;
 @property (readwrite, nonatomic, assign) NSInteger tempStateStackCount;
-
-//@property (readwrite, nonatomic, strong) NSMutableArray *deferredArray;
 @property (readwrite, nonatomic, strong) State *destState;
 @end
 
@@ -185,15 +183,21 @@
     
     //2、确定状态栈,存放的状态的起始Index
     NSInteger j = startIndex;
-    NSString* acturalStateStackDesc = @"实际状态栈构建完成:\n[";
     while (i >= 0) {
         //3、将临时状态栈中的状态 倒序 存放至 状态栈中
-        acturalStateStackDesc = [acturalStateStackDesc stringByAppendingFormat:@"index:%zd state:%@,\n",j,NSStringFromClass([[_tempStateStack[i] valueForKey:@"state"] class])];
         _stateStack[j] = _tempStateStack[i];
         j += 1;
         i -= 1;
     }
+    
+#ifdef DEBUG
+    __block NSString* acturalStateStackDesc = @"实际状态栈结构切成:\n[";
+    [_stateStack enumerateObjectsUsingBlock:^(StateInfo*  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        acturalStateStackDesc = [acturalStateStackDesc stringByAppendingFormat:@"index:%zd state:%@,\n",idx,NSStringFromClass([obj.state class])];
+    }];
     CPStateMechineLog(@"%@]",acturalStateStackDesc);
+#endif
+    
     //4、调整状态栈的栈顶的Index,指向状态栈的栈顶位置
     _stateStackTopIndex = j - 1;
     
@@ -222,12 +226,15 @@
     
     //1、获取目的状态的StateInfo
     StateInfo *destStateInfo = self.mapStateInfo[NSStringFromClass(destState.class)];
+    NSString *log = @"构建需要Enter的State的临时状态栈:\n[";
     do {
         //2、首先将目的状态存放至临时状态栈中
+        log = [log stringByAppendingFormat:@"index:%zd state:%@,\n",_tempStateStackCount,[destStateInfo.state getName]];
         self.tempStateStack[_tempStateStackCount++] = destStateInfo;
         destStateInfo = destStateInfo.parentStateInfo;
         //3、如果目的状态有父状态,并且父状态没有active的话,继续做第二步的事情
     } while (destStateInfo != nil && !(destStateInfo.active));
+    CPStateMechineLog(@"%@",log);
     return destStateInfo;
     
 }
@@ -338,6 +345,7 @@
  */
 - (void)transitionToState:(State *)state
 {
+    CPStateMechineLog(@"状态机的目的状态切换成 %@",[state getName]);
     self.destState = state;
 }
 @end

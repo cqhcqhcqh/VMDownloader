@@ -39,4 +39,5 @@ Pod::Spec.new do |s|
   # s.frameworks = 'UIKit', 'MapKit'
     s.dependency 'FMDB'
     s.dependency 'AFNetworking', '~> 3.0'
+  # s.dependency 'StateMachine', '~> 0.3.0'
 end
