@@ -14,14 +14,6 @@ PODS:
   - AFNetworking/Serialization (3.1.0)
   - AFNetworking/UIKit (3.1.0):
     - AFNetworking/NSURLSession
-  - CocoaLumberjack (2.2.0):
-    - CocoaLumberjack/Default (= 2.2.0)
-    - CocoaLumberjack/Extensions (= 2.2.0)
-  - CocoaLumberjack/Core (2.2.0)
-  - CocoaLumberjack/Default (2.2.0):
-    - CocoaLumberjack/Core
-  - CocoaLumberjack/Extensions (2.2.0):
-    - CocoaLumberjack/Default
   - Downloader (0.1.0):
     - AFNetworking (~> 3.0)
     - FMDB
@@ -35,10 +27,8 @@ PODS:
   - FMDB/standard (2.6.2)
 
 DEPENDENCIES:
-  - CocoaLumberjack
   - Downloader (from `../`)
   - FBSnapshotTestCase
-  - FMDB
 
 EXTERNAL SOURCES:
   Downloader:
@@ -46,7 +36,6 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
-  CocoaLumberjack: 17fe8581f84914d5d7e6360f7c70022b173c3ae0
   Downloader: f07cc29ab418616e89316f35cf82df47dbbfd9ce
   FBSnapshotTestCase: 366ecd378511d7716c79991cd8067d1eed23578d
   FMDB: 854a0341b4726e53276f2a8996f06f1b80f9259a

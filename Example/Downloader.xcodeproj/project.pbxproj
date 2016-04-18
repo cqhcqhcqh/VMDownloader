@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		12F4FE2A7035B0CD1854F944 /* Pods.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3506738524739E951A8D5DD /* Pods.framework */; };
 		6003F58E195388D20070C39A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6003F58D195388D20070C39A /* Foundation.framework */; };
 		6003F590195388D20070C39A /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6003F58F195388D20070C39A /* CoreGraphics.framework */; };
 		6003F592195388D20070C39A /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6003F591195388D20070C39A /* UIKit.framework */; };
@@ -24,8 +23,10 @@
 		AF519C5F1CC4810C0037B7BC /* VMVideoResource.m in Sources */ = {isa = PBXBuildFile; fileRef = AF519C5E1CC4810C0037B7BC /* VMVideoResource.m */; };
 		AF519C621CC481110037B7BC /* VMViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AF519C611CC481110037B7BC /* VMViewController.m */; };
 		AF519C641CC4812F0037B7BC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AF519C631CC4812F0037B7BC /* Main.storyboard */; };
-		AFCAD1B11CB3911500F05C4E /* Downloader.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AFCAD1B01CB3911500F05C4E /* Downloader.framework */; };
-		C5756A159011296836D2FB70 /* Pods_Downloader_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51350B4495D369123E451160 /* Pods_Downloader_Example.framework */; };
+		AF519C661CC482350037B7BC /* libsqlite3.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = AF519C651CC482350037B7BC /* libsqlite3.0.tbd */; };
+		AF519C6A1CC482480037B7BC /* AFNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF519C671CC482480037B7BC /* AFNetworking.framework */; };
+		AF519C6B1CC482480037B7BC /* Downloader.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF519C681CC482480037B7BC /* Downloader.framework */; };
+		AF519C6C1CC482480037B7BC /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF519C691CC482480037B7BC /* FMDB.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,6 +69,10 @@
 		AF519C601CC481110037B7BC /* VMViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VMViewController.h; sourceTree = "<group>"; };
 		AF519C611CC481110037B7BC /* VMViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VMViewController.m; sourceTree = "<group>"; };
 		AF519C631CC4812F0037B7BC /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
+		AF519C651CC482350037B7BC /* libsqlite3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.0.tbd; path = usr/lib/libsqlite3.0.tbd; sourceTree = SDKROOT; };
+		AF519C671CC482480037B7BC /* AFNetworking.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AFNetworking.framework; path = "Pods/../build/Release-iphoneos/AFNetworking.framework"; sourceTree = "<group>"; };
+		AF519C681CC482480037B7BC /* Downloader.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Downloader.framework; path = "Pods/../build/Release-iphoneos/Downloader.framework"; sourceTree = "<group>"; };
+		AF519C691CC482480037B7BC /* FMDB.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FMDB.framework; path = "Pods/../build/Release-iphoneos/FMDB.framework"; sourceTree = "<group>"; };
 		AFCAD1B01CB3911500F05C4E /* Downloader.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Downloader.framework; path = "../../../Library/Developer/Xcode/DerivedData/Downloader-ddhgplijbjsawdbkmdkpluwedwjk/Build/Products/Debug-iphonesimulator/Downloader.framework"; sourceTree = "<group>"; };
 		B3506738524739E951A8D5DD /* Pods.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E41C485A7E183F3C6AAECCCB /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
@@ -79,12 +84,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AFCAD1B11CB3911500F05C4E /* Downloader.framework in Frameworks */,
+				AF519C6A1CC482480037B7BC /* AFNetworking.framework in Frameworks */,
+				AF519C6B1CC482480037B7BC /* Downloader.framework in Frameworks */,
+				AF519C6C1CC482480037B7BC /* FMDB.framework in Frameworks */,
+				AF519C661CC482350037B7BC /* libsqlite3.0.tbd in Frameworks */,
 				6003F590195388D20070C39A /* CoreGraphics.framework in Frameworks */,
 				6003F592195388D20070C39A /* UIKit.framework in Frameworks */,
 				6003F58E195388D20070C39A /* Foundation.framework in Frameworks */,
-				C5756A159011296836D2FB70 /* Pods_Downloader_Example.framework in Frameworks */,
-				12F4FE2A7035B0CD1854F944 /* Pods.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +131,10 @@
 		6003F58C195388D20070C39A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AF519C671CC482480037B7BC /* AFNetworking.framework */,
+				AF519C681CC482480037B7BC /* Downloader.framework */,
+				AF519C691CC482480037B7BC /* FMDB.framework */,
+				AF519C651CC482350037B7BC /* libsqlite3.0.tbd */,
 				AFCAD1B01CB3911500F05C4E /* Downloader.framework */,
 				6003F58D195388D20070C39A /* Foundation.framework */,
 				6003F58F195388D20070C39A /* CoreGraphics.framework */,
@@ -351,7 +361,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods/Pods-frameworks.sh\"\n";
+			shellScript = "#\"${SRCROOT}/Pods/Target Support Files/Pods/Pods-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		823B8DE482637422C1CDB856 /* Embed Pods Frameworks */ = {
@@ -532,10 +542,24 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/build/Release-iphoneos",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Downloader/Downloader-Prefix.pch";
 				INFOPLIST_FILE = "Downloader/Downloader-Info.plist";
 				MODULE_NAME = ExampleApp;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"\"AFNetworking\"",
+					"-framework",
+					"\"Downloader\"",
+					"-framework",
+					"\"FMDB\"",
+					"-all_load",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.demo.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
@@ -551,10 +575,24 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/build/Release-iphoneos",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Downloader/Downloader-Prefix.pch";
 				INFOPLIST_FILE = "Downloader/Downloader-Info.plist";
 				MODULE_NAME = ExampleApp;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"\"AFNetworking\"",
+					"-framework",
+					"\"Downloader\"",
+					"-framework",
+					"\"FMDB\"",
+					"-all_load",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.demo.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
