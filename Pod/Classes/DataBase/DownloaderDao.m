@@ -79,6 +79,17 @@ static FMDatabase *database;
     return array;
 }
 
++ (NSArray *)recoverTasksWithThread:(NSThread *)thread key:(NSString *)key miniState:(int)miniState {
+    FMResultSet *resultSet = [database executeQuery:@"SELECT * from t_downloads where state > ?",@(miniState)];
+    NSMutableArray *array = [NSMutableArray array];
+    while ([resultSet next]) {
+        VMDownloadTask *task = [VMDownloadTask recoveryDownloadTaskWithRunloopThread:thread key:key resultSet:resultSet];
+        DatabaseLog(@"恢复 >%@状态的任务 state %@ title:%@ uuid:%@",DownloadStateDesc[miniState],DownloadStateDesc[task.mState],task.title,task.uuid);
+        [array addObject:task];
+    }
+    return array;
+}
+
 + (void)deleteDownloadTaskWithUUID:(NSString *)uuid
 {
     BOOL deleteSuccess =[database executeUpdate:@"DELETE FROM t_downloads WHERE _id = ?",uuid];

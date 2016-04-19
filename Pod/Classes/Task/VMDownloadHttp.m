@@ -49,6 +49,7 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
 {
     if (!_session) {
         // 1.创建Session
+#warning delegate会对self有个强引用,注意回收...,防止内存泄露
         _session =  [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:[NSOperationQueue mainQueue]];
     }
     return _session;

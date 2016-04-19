@@ -8,6 +8,7 @@
 
 #import "CPNotificationManager.h"
 NSString *const kMessageTypeEventProgress = @"com.vmovier.downloadProgress";
+NSString *const kDownloadTaskInsert = @"com.vmovier.downloadTaskDatabaseInsert";
 
 #define NotificationCenter [NSNotificationCenter defaultCenter]
 @implementation CPNotificationManager

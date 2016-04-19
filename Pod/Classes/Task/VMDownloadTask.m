@@ -264,7 +264,7 @@ NSString* const DownloadStateDesc[] = {
 - (void)delete{
     
     //根据uuid从数据库中删除对应的Task
-//    [DownloaderDao deleteDownloadTaskWithUUID:self.uuid];
+    [DownloaderDao deleteDownloadTaskWithUUID:self.uuid];
     //发送Notification
 }
 
@@ -314,7 +314,9 @@ NSString* const DownloadStateDesc[] = {
             [dict setObject:self.mModifyDate forKey:@"_modify"];
             [dict setObject:@(self.length) forKey:@"length"];
             [DownloaderDao createDownloadTaskWithDictionary:dict];
-            //mEventBus.post
+            
+            [CPNotificationManager postNotificationWithName:kDownloadTaskInsert type:0 message:nil obj:self userInfo:nil];
+            
         }else {
             //save
             self.mModifyDate = [NSDate dateWithFormatterString:nil];
@@ -411,12 +413,11 @@ NSString* const DownloadStateDesc[] = {
 
 - (void)enter
 {
-    [self.downloadTask delete];
 }
 
 - (void)exit
 {
-    
+    [self.downloadTask delete];
 }
 
 - (BOOL)processMessage:(CPMessage *)message

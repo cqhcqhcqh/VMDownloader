@@ -33,7 +33,7 @@
 + (void)updateDownloadTaskWithUUID:(NSString *)uuid dictionary:(NSDictionary *)dictionary;
 
 /**
- *  从数据库中回复被中断的任务
+ *  从数据库中恢复被中断的任务
  *
  *  @param thread 任务所在的线程
  *  @param key    Manager对应的key
@@ -41,4 +41,15 @@
  *  @return Tasks
  */
 + (NSArray *)recoverWorkingTasksWithThread:(NSThread *)thread key:(NSString *)key;
+
+/**
+ *  从数据库中恢复指定状态层级的任务
+ *
+ *  @param thread    任务所在的线程
+ *  @param key       Manager对应的key
+ *  @param miniState 最低状态的任务
+ *
+ *  @return Tasks
+ */
++ (NSArray *)recoverTasksWithThread:(NSThread *)thread key:(NSString *)key miniState:(int)miniState;
 @end

@@ -78,6 +78,8 @@ typedef NS_ENUM(NSUInteger, Command) {
 {
     if (!_manager) {
         _manager = [VMDownloaderManager managerWithIdentifier:@"downloader"];
+        self.downloadTasks = [[DownloaderDao recoverTasksWithThread:_manager.downloadTaskRunLoopThread key:_manager.downloadConfig.identifier miniState:0] mutableCopy];
+        [self.downloadTableView reloadData];
     }
     return _manager;
 }
