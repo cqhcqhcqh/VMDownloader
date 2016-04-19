@@ -31,14 +31,6 @@
     return _downloadTasks;
 }
 
-//- (NSString *)documentFilePath
-//{
-//    if (!_documentFilePath) {
-//        _documentFilePath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
-//        NSLog(@"%@",_documentFilePath);
-//    }
-//    return _documentFilePath;
-//}
 - (NSMutableArray *)videoResources
 {
     if (!_videoResources) {
@@ -93,6 +85,7 @@ typedef NS_ENUM(NSUInteger, Command) {
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    NSLog(@"%@",self.manager);
     [CPNotificationManager registerWithObserver:self name:kMessageTypeEventProgress selector:@selector(progressChange:)];
 }
 - (void)progressChange:(NSNotification *)note{

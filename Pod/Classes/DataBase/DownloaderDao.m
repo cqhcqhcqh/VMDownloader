@@ -43,17 +43,15 @@ static FMDatabase *database;
         }
     }
 }
-- (void)deleteDownloadTaskWithUUID:(NSString *)uuid {
-    BOOL deleteSuccess = [database executeUpdate:@"DELETE from t_downloads WHERE _id = ?;",uuid];
-    DatabaseLog(@"删除下载任务 uuid:%@ %@",uuid,deleteSuccess?@"成功":@"失败");
-}
+
 
 /**
  *  UPDATE COMPANY SET ADDRESS = 'Texas', SALARY = 20000.00
  */
 + (void)updateDownloadTaskWithUUID:(NSString *)uuid dictionary:(NSDictionary *)dictionary{
     BOOL updateSuccess =[database executeUpdate:@"UPDATE t_downloads SET mimetype = ?, state = ?, error = ?, length = ?, networkmode = ?, progress = ?, _modify = ?  WHERE _id = ?;",dictionary[@"mimetype"],dictionary[@"state"],dictionary[@"error"],dictionary[@"length"],dictionary[@"networkmode"],dictionary[@"progress"],dictionary[@"_modify"],uuid];
-    DatabaseLog(@"更新下载任务 title:%@ uuid:%@ %@",dictionary[@"title"],uuid,updateSuccess?@"成功":@"失败");
+    NSNumber * state = dictionary[@"state"];
+    DatabaseLog(@"更新下载任务 title:%@ uuid:%@ state:%@ %@",dictionary[@"title"],uuid,DownloadStateDesc[state.intValue],updateSuccess?@"成功":@"失败");
 }
 
 /**
@@ -65,7 +63,8 @@ static FMDatabase *database;
 + (void)createDownloadTaskWithDictionary:(NSDictionary *)dictionary {
 //    [database executeUpdateWithFormat:@"DELETE from t_downloads WHERE _id=?;",uuid];
     BOOL insertSuccess = [database executeUpdate:@"INSERT INTO t_downloads (_id, url, path, title, description, mimetype, state, error, md5, sha1, length, networkmode, progress, _create, _modify) VALUES (:_id, :url, :path, :title, :description, :mimetype, :state, :error, :md5, :sha1, :length, :networkmode, :progress, :_create, :_modify)" withParameterDictionary:dictionary];
-    DatabaseLog(@"插入下载任务 title:%@ uuid:%@ %@",dictionary[@"title"],dictionary[@"_id"],insertSuccess?@"成功":@"失败");
+    NSNumber * state = dictionary[@"state"];
+    DatabaseLog(@"插入下载任务 title:%@ uuid:%@ state:%@ %@",dictionary[@"title"],dictionary[@"_id"],DownloadStateDesc[state.intValue],insertSuccess?@"成功":@"失败");
     
 }
 

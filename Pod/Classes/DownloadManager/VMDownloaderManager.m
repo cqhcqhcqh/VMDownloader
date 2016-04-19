@@ -120,11 +120,13 @@ static NSMutableDictionary *MANAGERS;
 #pragma mark -- 创建Manager指定的线程,并且根据此线程,启动一个与线程对应的Runloop来管理事件源
 - (void)downloadTaskRunLoopThreadEntry
 {
-    NSThread * currentThread = [NSThread currentThread];
-    currentThread.name = @"DownloadTaskManagerThread";
-    NSRunLoop *currentRunloop = [NSRunLoop currentRunLoop];
-    [currentRunloop addPort:[NSMachPort port] forMode:NSDefaultRunLoopMode];
-    [currentRunloop run];
+    @autoreleasepool {
+        NSThread * currentThread = [NSThread currentThread];
+        currentThread.name = @"DownloadTaskManagerThread";
+        NSRunLoop *currentRunloop = [NSRunLoop currentRunLoop];
+        [currentRunloop addPort:[NSMachPort port] forMode:NSDefaultRunLoopMode];
+        [currentRunloop run];
+    }
 }
 
 

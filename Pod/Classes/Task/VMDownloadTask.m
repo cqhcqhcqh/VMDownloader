@@ -18,6 +18,7 @@
 #import "NSDate+NSString.h"
 #import "CPLoggerManager.h"
 #import "CPNotificationManager.h"
+#import "VMDownloadHttp.h"
 
 NSString* const DownloadStateDesc[] = {
     [DownloadTaskStateInit] = @"DownloadTaskStateInit",
@@ -65,8 +66,7 @@ NSString* const DownloadStateDesc[] = {
 
 @property (readwrite, nonatomic, weak) VMDownloaderManager *downloaderManager;
 @property (readwrite, nonatomic, weak) VMDownloadConfig *downloaderConfig;
-@property (readwrite, nonatomic, weak) NSURLSessionDownloadTask *urlSessionDownloadTask;
-@property (readwrite, nonatomic, weak) AFHTTPSessionManager *sessionManager;
+@property (readwrite, nonatomic, weak) NSURLSessionTask *urlSessionDownloadTask;
 
 @property (readwrite, nonatomic, assign) BOOL hasDataChanged;
 @property (readwrite, nonatomic, assign) BOOL needVerify;
@@ -146,7 +146,6 @@ NSString* const DownloadStateDesc[] = {
     task.mModifyDate = [resultSet stringForColumn:@"_modify"];
     task.netWorkMode = [resultSet intForColumn:@"netWorkMode"];
     
-    //    [task start];
     return task;
     
 }
@@ -182,13 +181,14 @@ NSString* const DownloadStateDesc[] = {
         _downloaderConfig = manager.downloadConfig;
         [self.smHandler setRunloopThread:thread];
         /**
-         将Task增加到弱引用缓存中,优化为了从数据库中恢复时候的耗时.
+         将Task增加到弱引用缓存 中,优化为了从数据库中恢复时候的耗时.
          **/
         [self.CACHE_TASKS_REF setObject:self forKey:uuid];
-        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:) name:UIApplicationWillTerminateNotification object:nil];
     }
     return self;
 }
+
 
 - (void)setAllowMobileNetWork:(BOOL)allow {
     if (allow) {
@@ -264,7 +264,7 @@ NSString* const DownloadStateDesc[] = {
 - (void)delete{
     
     //根据uuid从数据库中删除对应的Task
-    [DownloaderDao deleteDownloadTaskWithUUID:self.uuid];
+//    [DownloaderDao deleteDownloadTaskWithUUID:self.uuid];
     //发送Notification
 }
 
@@ -338,12 +338,12 @@ NSString* const DownloadStateDesc[] = {
 
 - (void)resumeDownload
 {
-    [self.urlSessionDownloadTask resume];
+    
 }
 
 - (void)downloadRun
 {
-    //1、如果mContentLength<0 ==》
+    NSLog(@"downloadRun -- %@",self.filePath);
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSError *createDir = nil;
     BOOL isDir = NO;
@@ -354,11 +354,13 @@ NSString* const DownloadStateDesc[] = {
         NSAssert(createSuccess, @"filePath %@ 文件目录创建失败 error:%@",filePath,[createDir localizedDescription]);
     }
     
-    AFHTTPSessionManager *sessionManager = [AFHTTPSessionManager manager];
+    
     __block UInt64 lastDownloadProgress = 0;
     __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
     
-    [sessionManager setDownloadTaskDidWriteDataBlock:^(NSURLSession * _Nonnull session, NSURLSessionDownloadTask * _Nonnull downloadTask, int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
+    VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
+    self.urlSessionDownloadTask = [downloadHttp downloadTaskWithRequest:request progress:^(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
         self.downloadProgress.totalUnitCount = totalBytesExpectedToWrite;
         self.downloadProgress.completedUnitCount = totalBytesWritten;
         
@@ -378,26 +380,17 @@ NSString* const DownloadStateDesc[] = {
         }else {
             [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self.downloadProgress]];
         }
-    }];
-    
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
-    NSURLSessionDownloadTask *urlSessionDownloadTask = [sessionManager downloadTaskWithRequest:request progress:nil destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
-        //moveItem
-        NSURL *url = [NSURL fileURLWithPath:filePath isDirectory:NO];
-        return url;
         
-    } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
+    } fileURL:^NSString *(NSURLResponse *response) {
+        return filePath;
+    } completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
         if (error) {
             [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:self.downloadProgress]];
         }else {
             [self sendMessageType:MessageTypeEventTaskDone];
         }
     }];
-    
-    
-    [urlSessionDownloadTask resume];
-    self.urlSessionDownloadTask = urlSessionDownloadTask;
-
+    [self.urlSessionDownloadTask resume];
 }
 
 
@@ -466,7 +459,7 @@ NSString* const DownloadStateDesc[] = {
 - (BOOL)processMessage:(CPMessage *)message
 {
     switch (message.type) {
-            case MessageTypeActionPaused:
+        case MessageTypeActionPaused:
             [self.downloadTask transitionToState:self.downloadTask.mPaused];
             return YES;
             
@@ -501,7 +494,7 @@ NSString* const DownloadStateDesc[] = {
 - (BOOL)processMessage:(CPMessage *)message
 {
     switch (message.type) {
-            case MessageTypeEventTaskDone:
+        case MessageTypeEventTaskDone:
 #warning 为什么要在这里存储一下状态呢?==>Downloading的过程中收到了下载完成的Event。。。
             CPStateMechineLog(@"下载完成");
             [self.downloadTask saveTask];
@@ -542,10 +535,11 @@ NSString* const DownloadStateDesc[] = {
     //在mStarted状态下接受到MessageTypeActionPaused的时候
     //将状态切换到mPaused,此时OnGoing状态将会从状态栈中Exit
     //所以在这个时候处理Paused
-//    [self.downloadTask.urlSessionDownloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
-//        
-//    }];
-    [self.downloadTask.urlSessionDownloadTask suspend];
+    //    [self.downloadTask.urlSessionDownloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
+    //
+    //    }];
+    //    [self.downloadTask.urlSessionDownloadTask suspend];
+    [self.downloadTask.urlSessionDownloadTask cancel];
 }
 
 - (BOOL)processMessage:(CPMessage *)message
@@ -606,7 +600,7 @@ NSString* const DownloadStateDesc[] = {
 - (BOOL)processMessage:(CPMessage *)message
 {
     switch (message.type) {
-            case MessageTypeActionStart:
+        case MessageTypeActionStart:
             if (![self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
                 //mEventBus.post
                 return YES;
@@ -620,8 +614,8 @@ NSString* const DownloadStateDesc[] = {
              * Retry的次数,只有三次机会。每次进入到Retry的时候,会隔三秒时间去重新发一个RetryRequest.
              *
              */
-            case MessageTypeEventNetworkConnectionChange:
-            case MessageTypeEventRetryRequest:
+        case MessageTypeEventNetworkConnectionChange:
+        case MessageTypeEventRetryRequest:
             if ([self.downloadTask retryCount] <= self.downloadTask.downloaderConfig.maxDownloadCount) {
                 if ([self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
                     //进入到Retry时
@@ -629,14 +623,14 @@ NSString* const DownloadStateDesc[] = {
                         
                         [self.downloadTask transitionToState:self.downloadTask.mOngoing];
                     }else {
-//                        [self.downloadTask saveTask]; 进行save的原因是因为要保存mError
+                        //                        [self.downloadTask saveTask]; 进行save的原因是因为要保存mError
                         [self.downloadTask transitionToState:self.downloadTask.mIOError];
                     }
                 }
             }else {
                 CPStateMechineLog(@"多次重试都失败");
                 [self.downloadTask transitionToState:self.downloadTask.mIOError];
-//                [self.downloadTask saveTask];
+                //                [self.downloadTask saveTask];
             }
             return YES;
             
@@ -674,7 +668,7 @@ NSString* const DownloadStateDesc[] = {
 - (BOOL)processMessage:(CPMessage *)message
 {
     switch (message.type) {
-            case MessageTypeEventDownloadingAvailable:
+        case MessageTypeEventDownloadingAvailable:
         {
             VMDownloadTask *firstWaitingTask = [self.tasks firstObject];
             if (firstWaitingTask == self.downloadTask) {
@@ -718,17 +712,17 @@ NSString* const DownloadStateDesc[] = {
             [self sendMessageType:MessageTypeEventVerifyFail];
         }
     }else {
-//        [self sendMessageType:MessageTypeEventVerifyPass];
+        //        [self sendMessageType:MessageTypeEventVerifyPass];
         [self.downloadTask transitionToState:self.downloadTask.mSuccess];
     }
 }
 - (BOOL)processMessage:(CPMessage *)message
 {
     switch (message.type) {
-            case MessageTypeEventVerifyPass:
+        case MessageTypeEventVerifyPass:
             [self.downloadTask transitionToState:self.downloadTask.mSuccess];
             return YES;
-            case MessageTypeEventVerifyFail:
+        case MessageTypeEventVerifyFail:
             [self.downloadTask transitionToState:self.downloadTask.mFailure];
             return YES;
         default:
@@ -888,6 +882,8 @@ static NSMutableDictionary *TASKS;
     }
     return self;
 }
+
+
 + (instancetype)downloadStateWithDownloadTask:(VMDownloadTask *)downloadTask isNotCacheTask:(BOOL)isNotCacheTask {
     return [[self alloc] initWithDownloadTask:downloadTask isNotCacheTask:isNotCacheTask];
 }

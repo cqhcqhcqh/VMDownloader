@@ -90,6 +90,8 @@
 		AE2A07407FB50BA249984DC0620E84C0 /* UIWebView+AFNetworking.h in Headers */ = {isa = PBXBuildFile; fileRef = 102E29D523D8D66F300302DF11A1EF47 /* UIWebView+AFNetworking.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AEBA7273A59F2B043A31661C1CB1604C /* UIImage+Diff.h in Headers */ = {isa = PBXBuildFile; fileRef = 01E8B694076A07E5A1A4B5BEC54D2E80 /* UIImage+Diff.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		AF03C11A1FAC8132AD3749D8F541701A /* UIButton+AFNetworking.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA32A4142195BF8A5707313BA400B39 /* UIButton+AFNetworking.m */; };
+		AF73A5811CC629CB004116DC /* VMDownloadHttp.h in Headers */ = {isa = PBXBuildFile; fileRef = AF73A57F1CC629CB004116DC /* VMDownloadHttp.h */; };
+		AF73A5821CC629CB004116DC /* VMDownloadHttp.m in Sources */ = {isa = PBXBuildFile; fileRef = AF73A5801CC629CB004116DC /* VMDownloadHttp.m */; };
 		B0A65BAA407BEAA279D50562F00D56F8 /* Pods-Downloader_Tests-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 23312B39F9ADEC3580D48F4135A4CA3E /* Pods-Downloader_Tests-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B5852322ADE88AAD56EE042B80BA81E4 /* AFURLResponseSerialization.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B74733065818A31135D019A2F75BE2 /* AFURLResponseSerialization.m */; };
 		B6EB34728332231C3C350501A03F01D2 /* Downloader-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 417AD4C56CB691E70930EA24CA03B999 /* Downloader-dummy.m */; };
@@ -309,6 +311,8 @@
 		A945CC0F85DCD7BFAD524A0993E3F789 /* AFNetworkActivityIndicatorManager.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = AFNetworkActivityIndicatorManager.m; path = "UIKit+AFNetworking/AFNetworkActivityIndicatorManager.m"; sourceTree = "<group>"; };
 		A98EAD247DD05A2345A452D8A4966106 /* Pods-Downloader_Tests-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-Downloader_Tests-dummy.m"; sourceTree = "<group>"; };
 		AE7FD92887424A107BE0E9CE359161AA /* StateMachine.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = StateMachine.m; sourceTree = "<group>"; };
+		AF73A57F1CC629CB004116DC /* VMDownloadHttp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VMDownloadHttp.h; sourceTree = "<group>"; };
+		AF73A5801CC629CB004116DC /* VMDownloadHttp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VMDownloadHttp.m; sourceTree = "<group>"; };
 		AF7F1613E0EDCEDF30A5C2DCFC5AEE11 /* UIImageView+AFNetworking.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "UIImageView+AFNetworking.m"; path = "UIKit+AFNetworking/UIImageView+AFNetworking.m"; sourceTree = "<group>"; };
 		B1FFD5042D38731FF0847ABEB12DF4B0 /* AFImageDownloader.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = AFImageDownloader.m; path = "UIKit+AFNetworking/AFImageDownloader.m"; sourceTree = "<group>"; };
 		B209C3B47C0E32D214E27A9012362EBC /* Pods-Downloader_Example-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-Downloader_Example-frameworks.sh"; sourceTree = "<group>"; };
@@ -479,6 +483,8 @@
 			children = (
 				17A9D756C0B992BB5A51F5E5023A2987 /* VMDownloadTask.h */,
 				C558BCACDB34586F999B5BF88B03F46F /* VMDownloadTask.m */,
+				AF73A57F1CC629CB004116DC /* VMDownloadHttp.h */,
+				AF73A5801CC629CB004116DC /* VMDownloadHttp.m */,
 			);
 			path = Task;
 			sourceTree = "<group>";
@@ -487,8 +493,8 @@
 			isa = PBXGroup;
 			children = (
 				F5D21E91C15210412F4C7DF01770DC79 /* Category */,
-				C2A4A3C26705E966E7A1AEBD02ECB258 /* Config */,
 				940570F8F0532AB97DD59E1B1E6EA876 /* DataBase */,
+				C2A4A3C26705E966E7A1AEBD02ECB258 /* Config */,
 				655D1056D08E6D9CD7DE46096B56883D /* DownloadManager */,
 				F4BD575AAAC9DC2F45719EB96609AA24 /* HSM */,
 				0B07023003C186A5384A20D23FF78780 /* Logger */,
@@ -971,6 +977,7 @@
 				F37E9C09785D1850AA02DCDB797C557B /* DownloaderDao.h in Headers */,
 				2C1AAF2163B69AE42A8BF48DBD56D2C1 /* NSData+MD5.h in Headers */,
 				C264EFB6ECE6C904D2DE93470A3C92F8 /* NSDate+NSString.h in Headers */,
+				AF73A5811CC629CB004116DC /* VMDownloadHttp.h in Headers */,
 				C79C81CD96A990D704CA308A56CAB714 /* NSString+MD5.h in Headers */,
 				EDF8363DAB011BD9C46777103BBA8F8A /* Reachability.h in Headers */,
 				574CE31BB029EAC3FA58D0C371AB7F57 /* SmHandler.h in Headers */,
@@ -1224,6 +1231,7 @@
 			files = (
 				2485BF75222209F4A1D36CA0F1645952 /* ConnectionUtils.m in Sources */,
 				03C561BEBC5379F01F3DF88B41BE8188 /* CPLoggerManager.m in Sources */,
+				AF73A5821CC629CB004116DC /* VMDownloadHttp.m in Sources */,
 				23918A4046B20452940F357AF1678D8B /* CPMessageOperation.m in Sources */,
 				31977E9971DBAF27752A727938063E5B /* CPMessagesQueue.m in Sources */,
 				4BE9EEA6258B5B69A8DF97007CABE7F0 /* CPNotificationManager.m in Sources */,
