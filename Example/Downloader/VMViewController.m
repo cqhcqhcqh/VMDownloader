@@ -23,13 +23,6 @@
 @end
 
 @implementation VMViewController
-- (NSMutableArray *)downloadTasks
-{
-    if (!_downloadTasks) {
-        _downloadTasks = [NSMutableArray array];
-    }
-    return _downloadTasks;
-}
 
 - (NSMutableArray *)videoResources
 {
@@ -73,21 +66,18 @@ typedef NS_ENUM(NSUInteger, Command) {
         }
     }];
 }
-
-- (VMDownloaderManager *)manager
+- (void)viewDidAppear:(BOOL)animated
 {
-    if (!_manager) {
-        _manager = [VMDownloaderManager managerWithIdentifier:@"downloader"];
-        self.downloadTasks = [[DownloaderDao recoverTasksWithThread:_manager.downloadTaskRunLoopThread key:_manager.downloadConfig.identifier miniState:0] mutableCopy];
-        [self.downloadTableView reloadData];
-    }
-    return _manager;
+    [super viewDidAppear:animated];
+    self.manager = [VMDownloaderManager managerWithIdentifier:@"downloader"];
+    self.downloadTasks = [[DownloaderDao recoverTasksWithThread:_manager.downloadTaskRunLoopThread key:_manager.downloadConfig.identifier miniState:0] mutableCopy];
+    [self.downloadTableView reloadData];
 }
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    NSLog(@"%@",self.manager);
+    
     [CPNotificationManager registerWithObserver:self name:kMessageTypeEventProgress selector:@selector(progressChange:)];
 }
 - (void)progressChange:(NSNotification *)note{
@@ -162,7 +152,6 @@ typedef NS_ENUM(NSUInteger, Command) {
             [task resumeTask];
         }
     }
-    
 }
 
 - (void)updateCell:(VMDownloadTaskTableViewCell *)cell {

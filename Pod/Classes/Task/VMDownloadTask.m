@@ -184,7 +184,6 @@ NSString* const DownloadStateDesc[] = {
          将Task增加到弱引用缓存 中,优化为了从数据库中恢复时候的耗时.
          **/
         [self.CACHE_TASKS_REF setObject:self forKey:uuid];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:) name:UIApplicationWillTerminateNotification object:nil];
     }
     return self;
 }
