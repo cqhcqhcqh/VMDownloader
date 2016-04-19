@@ -52,6 +52,8 @@ FOUNDATION_EXPORT NSString* const MessageMapping [];
 
 - (instancetype)initWithType:(MessageType)type;
 + (instancetype)messageWithType:(MessageType)type;
+- (instancetype)initWithType:(MessageType)type obj:(id)object;
++ (instancetype)messageWithType:(MessageType)type obj:(id)object;
 - (instancetype)initWithType:(MessageType)type subType:(int)subType code:(int)code obj:(id)object;
 + (instancetype)messageWithType:(MessageType)type subType:(int)subType code:(int)code obj:(id)object;
 @end

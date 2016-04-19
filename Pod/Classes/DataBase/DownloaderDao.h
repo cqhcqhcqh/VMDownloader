@@ -20,6 +20,7 @@
  *  根据指定的UUID从数据库中删除一个Task对象
  *
  *  @param uuid 任务的唯一身份ID
+ 
  */
 + (void)deleteDownloadTaskWithUUID:(NSString *)uuid;
 

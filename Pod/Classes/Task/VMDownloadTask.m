@@ -17,6 +17,7 @@
 #import "DownloaderDao.h"
 #import "NSDate+NSString.h"
 #import "CPLoggerManager.h"
+#import "CPNotificationManager.h"
 
 NSString* const DownloadStateDesc[] = {
     [DownloadTaskStateInit] = @"DownloadTaskStateInit",
@@ -65,10 +66,11 @@ NSString* const DownloadStateDesc[] = {
 @property (readwrite, nonatomic, weak) VMDownloaderManager *downloaderManager;
 @property (readwrite, nonatomic, weak) VMDownloadConfig *downloaderConfig;
 @property (readwrite, nonatomic, weak) NSURLSessionDownloadTask *urlSessionDownloadTask;
+@property (readwrite, nonatomic, weak) AFHTTPSessionManager *sessionManager;
 
 @property (readwrite, nonatomic, assign) BOOL hasDataChanged;
 @property (readwrite, nonatomic, assign) BOOL needVerify;
-
+@property (readwrite, nonatomic, assign) NSInteger retryCount;
 @property (readwrite, nonatomic, strong) NSMapTable *CACHE_TASKS_REF;
 
 /**
@@ -90,6 +92,15 @@ NSString* const DownloadStateDesc[] = {
 @end
 
 @implementation VMDownloadTask
+- (NSProgress *)downloadProgress
+{
+    if (!_downloadProgress) {
+        _downloadProgress = [[NSProgress alloc] initWithParent:nil userInfo:nil];
+        _downloadProgress.totalUnitCount = NSURLSessionTransferSizeUnknown;
+    }
+    return _downloadProgress;
+}
+
 - (NSMapTable *)CACHE_TASKS_REF
 {
     if (!_CACHE_TASKS_REF) {
@@ -253,7 +264,7 @@ NSString* const DownloadStateDesc[] = {
 - (void)delete{
     
     //根据uuid从数据库中删除对应的Task
-    
+    [DownloaderDao deleteDownloadTaskWithUUID:self.uuid];
     //发送Notification
 }
 
@@ -271,12 +282,11 @@ NSString* const DownloadStateDesc[] = {
     [self sendMessageType:MessageTypeActionDelete];
 }
 
-- (void)saveTaskState {
+- (void)saveTask {
     
     @synchronized (self) {
         _hasDataChanged = YES;
     }
-    
 }
 
 - (void)smHandlerProcessFinalMessage:(CPMessage *)msg
@@ -304,6 +314,7 @@ NSString* const DownloadStateDesc[] = {
             [dict setObject:self.mModifyDate forKey:@"_modify"];
             [dict setObject:@(self.length) forKey:@"length"];
             [DownloaderDao createDownloadTaskWithDictionary:dict];
+            //mEventBus.post
         }else {
             //save
             self.mModifyDate = [NSDate dateWithFormatterString:nil];
@@ -325,9 +336,14 @@ NSString* const DownloadStateDesc[] = {
     return (self.mState & level) >0;
 }
 
+- (void)resumeDownload
+{
+    [self.urlSessionDownloadTask resume];
+}
 
 - (void)downloadRun
 {
+    //1、如果mContentLength<0 ==》
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSError *createDir = nil;
     BOOL isDir = NO;
@@ -339,42 +355,49 @@ NSString* const DownloadStateDesc[] = {
     }
     
     AFHTTPSessionManager *sessionManager = [AFHTTPSessionManager manager];
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
-    
     __block UInt64 lastDownloadProgress = 0;
     __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
     
-    NSURLSessionDownloadTask *urlSessionDownloadTask = [sessionManager downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
+    [sessionManager setDownloadTaskDidWriteDataBlock:^(NSURLSession * _Nonnull session, NSURLSessionDownloadTask * _Nonnull downloadTask, int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
+        self.downloadProgress.totalUnitCount = totalBytesExpectedToWrite;
+        self.downloadProgress.completedUnitCount = totalBytesWritten;
         
-        if (downloadProgress.completedUnitCount < downloadProgress.totalUnitCount) {
+        if (totalBytesWritten < totalBytesExpectedToWrite) {
             UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
             
             UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;
             
-            UInt64 deltaProgress = downloadProgress.completedUnitCount-lastDownloadProgress;
+            UInt64 deltaProgress = totalBytesWritten -lastDownloadProgress;
             
             if (deltaTimeInterval >= 1000) {
                 NSLog(@"下载速度 %f m/s",(deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024));
-                [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress] delay:1.0];
-                lastDownloadProgress = downloadProgress.completedUnitCount;
+                [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:self.downloadProgress] delay:1.0];
+                lastDownloadProgress = totalBytesWritten;
                 lastTimeInterval = currentTimeInterval;
             }
-            
         }else {
-            [self sendMessageType:MessageTypeEventTaskDone];
+            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self.downloadProgress]];
         }
-        
-    } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
+    }];
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
+    NSURLSessionDownloadTask *urlSessionDownloadTask = [sessionManager downloadTaskWithRequest:request progress:nil destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
         //moveItem
         NSURL *url = [NSURL fileURLWithPath:filePath isDirectory:NO];
         return url;
         
     } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
-        [self sendMessageType:MessageTypeEventDownloadException];
+        if (error) {
+            [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:self.downloadProgress]];
+        }else {
+            [self sendMessageType:MessageTypeEventTaskDone];
+        }
     }];
+    
     
     [urlSessionDownloadTask resume];
     self.urlSessionDownloadTask = urlSessionDownloadTask;
+
 }
 
 
@@ -481,7 +504,7 @@ NSString* const DownloadStateDesc[] = {
             case MessageTypeEventTaskDone:
 #warning 为什么要在这里存储一下状态呢?==>Downloading的过程中收到了下载完成的Event。。。
             CPStateMechineLog(@"下载完成");
-            [self.downloadTask saveTaskState];
+            [self.downloadTask saveTask];
             if([self.downloadTask needVerify]){
                 [self.downloadTask transitionToState:self.downloadTask.mVerifying];
             }else {
@@ -505,10 +528,11 @@ NSString* const DownloadStateDesc[] = {
 {
     [super enter];
     self.downloadTask.mState = DownloadTaskStateOngoing;
-    [self.downloadTask saveTaskState];
+    [self.downloadTask saveTask];
     
     [self.downloadTask downloadRun];
 }
+
 - (void)exit
 {
     [super exit];
@@ -518,6 +542,9 @@ NSString* const DownloadStateDesc[] = {
     //在mStarted状态下接受到MessageTypeActionPaused的时候
     //将状态切换到mPaused,此时OnGoing状态将会从状态栈中Exit
     //所以在这个时候处理Paused
+//    [self.downloadTask.urlSessionDownloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
+//        
+//    }];
     [self.downloadTask.urlSessionDownloadTask suspend];
 }
 
@@ -533,6 +560,7 @@ NSString* const DownloadStateDesc[] = {
             [self.downloadTask removeMessageWithType:MessageTypeEventProgress];
         case MessageTypeEventProgress:
             //notify 下载进度
+            [CPNotificationManager postNotificationWithName:kMessageTypeEventProgress type:0 message:nil obj:self.downloadTask userInfo:@{@"progress":message.obj}];
             return YES;
             
         default:
@@ -564,8 +592,9 @@ NSString* const DownloadStateDesc[] = {
         }else {
             CPStateMechineLog(@"网络不允许");
         }
+        //mEventBus.post
     }
-    [self.downloadTask saveTaskState];
+    [self.downloadTask saveTask];
 }
 
 - (void)exit
@@ -579,6 +608,7 @@ NSString* const DownloadStateDesc[] = {
     switch (message.type) {
             case MessageTypeActionStart:
             if (![self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
+                //mEventBus.post
                 return YES;
             }
             /*
@@ -599,14 +629,14 @@ NSString* const DownloadStateDesc[] = {
                         
                         [self.downloadTask transitionToState:self.downloadTask.mOngoing];
                     }else {
-//                        [self.downloadTask saveTaskState]; 进行save的原因是因为要保存mError
+//                        [self.downloadTask saveTask]; 进行save的原因是因为要保存mError
                         [self.downloadTask transitionToState:self.downloadTask.mIOError];
                     }
                 }
             }else {
                 CPStateMechineLog(@"多次重试都失败");
                 [self.downloadTask transitionToState:self.downloadTask.mIOError];
-//                [self.downloadTask saveTaskState];
+//                [self.downloadTask saveTask];
             }
             return YES;
             
@@ -626,7 +656,7 @@ NSString* const DownloadStateDesc[] = {
 {
     [super enter];
     self.downloadTask.mState = DownloadTaskStateWaiting;
-    [self.downloadTask saveTaskState];
+    [self.downloadTask saveTask];
     
     NSArray *tasks = self.downloadTask.mDownloading.tasks;
     if([tasks count] < self.downloadTask.downloaderConfig.maxDownloadCount) {
@@ -679,7 +709,7 @@ NSString* const DownloadStateDesc[] = {
     [super enter];
     //有MD5的话，就进行MD5校验
     self.downloadTask.mState = DownloadTaskStateVerifying;
-    [self.downloadTask saveTaskState];
+    [self.downloadTask saveTask];
     
     if([self.downloadTask needVerify]) {
         if([self.downloadTask.downloaderManager verifyMd5WithFilePath:self.downloadTask.filePath md5Result:self.downloadTask.mMd5]) {
@@ -731,7 +761,7 @@ NSString* const DownloadStateDesc[] = {
 - (void)enter
 {
     self.downloadTask.mState = DownloadTaskStatePaused;
-    [self.downloadTask saveTaskState];
+    [self.downloadTask saveTask];
 }
 - (instancetype)initWithDownloadTask:(VMDownloadTask *)downloadTask
 {
@@ -748,7 +778,7 @@ NSString* const DownloadStateDesc[] = {
     self.downloadTask.mState = DownloadTaskStateIOError;
     //如果retry三次还是失败的话,就进入到IOErrorState,然后给retryCount归0
     self.downloadTask.retryCount = 0;
-    [self.downloadTask saveTaskState];
+    [self.downloadTask saveTask];
 }
 
 - (instancetype)initWithDownloadTask:(VMDownloadTask *)downloadTask
@@ -777,7 +807,7 @@ NSString* const DownloadStateDesc[] = {
 - (void)enter
 {
     self.downloadTask.mState = DownloadTaskStateSuccess;
-    [self.downloadTask saveTaskState];
+    [self.downloadTask saveTask];
 }
 @end
 
@@ -792,7 +822,7 @@ NSString* const DownloadStateDesc[] = {
 - (void)enter
 {
     self.downloadTask.mState = DownloadTaskStateFailure;
-    [self.downloadTask saveTaskState];
+    [self.downloadTask saveTask];
 }
 @end
 

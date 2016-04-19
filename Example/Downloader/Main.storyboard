@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10116" systemVersion="15C50" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="whP-gf-Uak">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10116" systemVersion="15E65" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="whP-gf-Uak">
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
@@ -42,9 +42,114 @@
                                     <action selector="getErrorMD5ResourceList:" destination="whP-gf-Uak" eventType="touchUpInside" id="zfo-1o-nBC"/>
                                 </connections>
                             </button>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="A4B-Md-pXx">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="77" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="A4B-Md-pXx">
                                 <rect key="frame" x="119" y="80" width="201" height="488"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <prototypes>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="DownloadCell" rowHeight="77" id="duE-b1-vRJ" customClass="VMDownloadTaskTableViewCell">
+                                        <rect key="frame" x="0.0" y="28" width="201" height="77"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="duE-b1-vRJ" id="gpY-39-SM0">
+                                            <rect key="frame" x="0.0" y="0.0" width="201" height="76.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="DkI-WG-Ian">
+                                                    <rect key="frame" x="8" y="72" width="193" height="2"/>
+                                                </progressView>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xQ8-9w-eNa">
+                                                    <rect key="frame" x="151" y="43" width="42" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wlE-Xf-FBT" userLabel="Progress">
+                                                    <rect key="frame" x="76" y="8" width="117" height="21"/>
+                                                    <subviews>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0.0MB" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eit-vi-qGH" userLabel="currentDownloadLabel">
+                                                            <rect key="frame" x="0.0" y="0.0" width="49.5" height="21"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="20.0MB" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ItO-Zh-a0Z" userLabel="totalDownloadLabel">
+                                                            <rect key="frame" x="57" y="0.0" width="60" height="21"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                    </subviews>
+                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="bottom" secondItem="ItO-Zh-a0Z" secondAttribute="bottom" id="2hc-w2-39f"/>
+                                                        <constraint firstAttribute="bottom" secondItem="eit-vi-qGH" secondAttribute="bottom" id="Fed-AQ-4Xv"/>
+                                                        <constraint firstItem="eit-vi-qGH" firstAttribute="leading" secondItem="wlE-Xf-FBT" secondAttribute="leading" id="UyJ-5J-mro"/>
+                                                        <constraint firstItem="eit-vi-qGH" firstAttribute="top" secondItem="wlE-Xf-FBT" secondAttribute="top" id="aDV-AF-SuK"/>
+                                                        <constraint firstAttribute="trailing" secondItem="ItO-Zh-a0Z" secondAttribute="trailing" id="aEz-JL-4EV"/>
+                                                        <constraint firstItem="ItO-Zh-a0Z" firstAttribute="leading" secondItem="eit-vi-qGH" secondAttribute="trailing" constant="8" id="d79-RS-ZEg"/>
+                                                        <constraint firstItem="ItO-Zh-a0Z" firstAttribute="top" secondItem="wlE-Xf-FBT" secondAttribute="top" id="ipt-f0-pEX"/>
+                                                    </constraints>
+                                                </view>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OUV-dL-BOE" userLabel="speedView">
+                                                    <rect key="frame" x="88" y="43" width="105" height="21.5"/>
+                                                    <subviews>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0.0KB/s" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wc6-8p-iQe" userLabel="speedLabel">
+                                                            <rect key="frame" x="0.0" y="0.0" width="60" height="21"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0.0%" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Qk1-yG-k0k" userLabel="percentLabel">
+                                                            <rect key="frame" x="68" y="0.0" width="37" height="21"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                    </subviews>
+                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                    <constraints>
+                                                        <constraint firstItem="Qk1-yG-k0k" firstAttribute="top" secondItem="OUV-dL-BOE" secondAttribute="top" id="EOT-cb-LlJ"/>
+                                                        <constraint firstAttribute="bottom" secondItem="Qk1-yG-k0k" secondAttribute="bottom" id="G7Y-Vg-NBd"/>
+                                                        <constraint firstItem="wc6-8p-iQe" firstAttribute="top" secondItem="OUV-dL-BOE" secondAttribute="top" id="KAe-dl-8CQ"/>
+                                                        <constraint firstItem="Qk1-yG-k0k" firstAttribute="leading" secondItem="wc6-8p-iQe" secondAttribute="trailing" constant="8" id="MyJ-jX-QjX"/>
+                                                        <constraint firstAttribute="trailing" secondItem="Qk1-yG-k0k" secondAttribute="trailing" id="TCe-MQ-3Sp"/>
+                                                        <constraint firstAttribute="bottom" secondItem="wc6-8p-iQe" secondAttribute="bottom" id="XA6-BO-Ys9"/>
+                                                        <constraint firstItem="wc6-8p-iQe" firstAttribute="leading" secondItem="OUV-dL-BOE" secondAttribute="leading" id="h8e-oB-bqD"/>
+                                                    </constraints>
+                                                </view>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="标题" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lUo-l6-1xN">
+                                                    <rect key="frame" x="12" y="28" width="34" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="trailing" secondItem="wlE-Xf-FBT" secondAttribute="trailing" constant="8" id="7nK-vC-wtW"/>
+                                                <constraint firstItem="DkI-WG-Ian" firstAttribute="top" secondItem="OUV-dL-BOE" secondAttribute="bottom" constant="8" id="7vP-22-BIq"/>
+                                                <constraint firstItem="wlE-Xf-FBT" firstAttribute="top" secondItem="gpY-39-SM0" secondAttribute="top" constant="8" id="ALR-3W-xfM"/>
+                                                <constraint firstItem="DkI-WG-Ian" firstAttribute="top" secondItem="xQ8-9w-eNa" secondAttribute="bottom" constant="8" id="Eff-Fe-yWz"/>
+                                                <constraint firstAttribute="bottom" secondItem="DkI-WG-Ian" secondAttribute="bottom" constant="2" id="Qkw-AR-92b"/>
+                                                <constraint firstItem="lUo-l6-1xN" firstAttribute="centerY" secondItem="gpY-39-SM0" secondAttribute="centerY" id="dE2-PX-ojG"/>
+                                                <constraint firstItem="lUo-l6-1xN" firstAttribute="centerX" secondItem="gpY-39-SM0" secondAttribute="centerX" constant="-71.5" id="gc9-fJ-77P"/>
+                                                <constraint firstItem="DkI-WG-Ian" firstAttribute="leading" secondItem="gpY-39-SM0" secondAttribute="leading" constant="8" id="giN-Mh-uQD"/>
+                                                <constraint firstAttribute="trailing" secondItem="xQ8-9w-eNa" secondAttribute="trailing" constant="8" id="isH-do-DuB"/>
+                                                <constraint firstAttribute="trailing" secondItem="DkI-WG-Ian" secondAttribute="trailing" id="lVP-G3-Jxl"/>
+                                                <constraint firstAttribute="trailing" secondItem="OUV-dL-BOE" secondAttribute="trailing" constant="8" id="s6I-7H-H9W"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="currentDownloadLabel" destination="eit-vi-qGH" id="3kC-Vs-WjU"/>
+                                            <outlet property="percentLabel" destination="Qk1-yG-k0k" id="Jly-GY-fzr"/>
+                                            <outlet property="progressView" destination="DkI-WG-Ian" id="nwl-E0-9sq"/>
+                                            <outlet property="showDownloadView" destination="wlE-Xf-FBT" id="eoR-Ta-ZVJ"/>
+                                            <outlet property="speedLabel" destination="wc6-8p-iQe" id="fuL-Py-hXM"/>
+                                            <outlet property="speedView" destination="OUV-dL-BOE" id="osI-LK-wcS"/>
+                                            <outlet property="stateLabel" destination="xQ8-9w-eNa" id="ORU-kh-sWq"/>
+                                            <outlet property="titleView" destination="lUo-l6-1xN" id="Cm8-Kv-qig"/>
+                                            <outlet property="totalDownloadLabel" destination="ItO-Zh-a0Z" id="JIV-Ff-hsQ"/>
+                                        </connections>
+                                    </tableViewCell>
+                                </prototypes>
                                 <connections>
                                     <outlet property="dataSource" destination="whP-gf-Uak" id="GYx-Rh-IIu"/>
                                     <outlet property="delegate" destination="whP-gf-Uak" id="4PJ-qh-ufI"/>
@@ -74,7 +179,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="tc2-Qw-aMS" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-63" y="251"/>
+            <point key="canvasLocation" x="-183" y="33"/>
         </scene>
     </scenes>
 </document>

@@ -7,42 +7,43 @@
 //
 
 #import "CPNotificationManager.h"
+NSString *const kMessageTypeEventProgress = @"com.vmovier.downloadProgress";
 
 #define NotificationCenter [NSNotificationCenter defaultCenter]
 @implementation CPNotificationManager
 
-+ (void)postNotificationWithName:(NSString *)aName message:(NSString *)message{
-    [self postNotificationWithName:aName type:0 message:message];
-}
-
 + (void)postNotificationWithName:(NSString *)aName type:(int)type{
     
-    [self postNotificationWithName:aName type:type message:nil];
+    [self postNotificationWithName:aName type:type message:nil obj:nil userInfo:nil];
 }
 
++ (void)postNotificationWithName:(NSString *)aName message:(NSString *)message{
+    [self postNotificationWithName:aName type:0 message:message obj:nil userInfo:nil];
+}
+
++ (void)postNotificationWithName:(NSString *)aName type:(int)type message:(NSString *)message {
+    [self postNotificationWithName:aName type:type message:message obj:nil userInfo:nil];
+}
+
+
 + (void)postNotificationWithName:(NSString *)aName type:(int)type message:(NSString *)message obj:(id)obj {
+    [self postNotificationWithName:aName type:type message:message obj:obj userInfo:nil];
+}
+
+
++ (void)postNotificationWithName:(NSString *)aName type:(int)type message:(NSString *)message obj:(id)obj userInfo:(NSDictionary *)userInfo {
     CPNoteMessage *noteMessage = [[CPNoteMessage alloc] init];
     noteMessage.type = type;
     noteMessage.obj = obj;
+    noteMessage.userInfo = userInfo;
     noteMessage.message = message;
     [self postNotificationWithName:aName noteObj:noteMessage];
 }
 
-+ (void)postNotificationWithName:(NSString *)aName type:(int)type message:(NSString *)message {
-    [self postNotificationWithName:aName type:type message:message obj:nil];
-}
 
-
-//+ (void)postNotificationWithName:(NSString *)aName valueOld:(id)aOldValue valueNew:(id)aNewValue {
-//    NSDictionary *dict = @{CPStateMachineOldValue:aOldValue,CPStateMachineNewValue:aNewValue};
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        [NotificationCenter postNotificationName:aName object:nil userInfo:dict];
-//    });
-//}
-
-
-+ (void)postNotificationWithName:(NSString *)aName noteObj:(id)aNoteObj {
-    NSNotification *note = [NSNotification notificationWithName:aName object:aNoteObj];
++ (void)postNotificationWithName:(NSString *)aName noteObj:(CPNoteMessage *)aNoteObj {
+    NSNotification *note = [NSNotification notificationWithName:aName object:aNoteObj userInfo:aNoteObj.userInfo];
+    [NSNotification notificationWithName:aName object:aNoteObj userInfo:nil];
     dispatch_async(dispatch_get_main_queue(), ^{
         [NotificationCenter postNotification:note];
     });
@@ -50,7 +51,6 @@
 
 
 + (void)registerWithObserver:(id)observer name:(NSString *)aName selector:(SEL)sel {
-
     [NotificationCenter addObserver:observer selector:sel name:aName object:nil];
 }
 

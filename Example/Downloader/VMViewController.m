@@ -8,6 +8,8 @@
 
 #import "VMViewController.h"
 #import "VMVideoResource.h"
+#import "VMDownloadTaskTableViewCell.h"
+
 @import Downloader;
 @interface VMViewController ()<UITableViewDelegate,UITableViewDataSource>
 @property (readwrite, nonatomic, strong) VMDownloaderManager *manager;
@@ -91,7 +93,13 @@ typedef NS_ENUM(NSUInteger, Command) {
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+    [CPNotificationManager registerWithObserver:self name:kMessageTypeEventProgress selector:@selector(progressChange:)];
+}
+- (void)progressChange:(NSNotification *)note{
+    NSLog(@"obj:%@ userInfo:%@",[(CPNoteMessage *)note.object obj],note.userInfo);
+    VMDownloadTask *task = [(CPNoteMessage *)note.object obj];
+    NSInteger row = [self.downloadTasks indexOfObject:task];
+    [self.downloadTableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:row inSection:0]] withRowAnimation:UITableViewRowAnimationAutomatic];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -105,22 +113,29 @@ typedef NS_ENUM(NSUInteger, Command) {
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *ID = @"ID";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
-    if (cell == nil) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:ID];
-    }
-    
+    UITableViewCell *cell = nil;
     if (tableView == self.resourceTableView) {
+        static NSString *ID = @"ID";
+        cell = [tableView dequeueReusableCellWithIdentifier:ID];
+        if (cell == nil) {
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:ID];
+        }
         VMVideoResource *resource = self.videoResources[indexPath.row];
         cell.textLabel.adjustsFontSizeToFitWidth = YES;
         cell.textLabel.text = resource.title;
         cell.detailTextLabel.text = resource.url;
     }else if (tableView == self.downloadTableView) {
-        VMDownloadTask *task = self.downloadTasks[indexPath.row];
-        cell.textLabel.text = task.title;
-        cell.detailTextLabel.text = task.url;
         
+        static NSString *ID = @"DownloadCell";
+        cell = [tableView dequeueReusableCellWithIdentifier:ID forIndexPath:indexPath];
+        VMDownloadTaskTableViewCell *downloadCell = (VMDownloadTaskTableViewCell*)cell;
+        
+        VMDownloadTask *task = self.downloadTasks[indexPath.row];
+        downloadCell.titleView.text = task.title;
+        downloadCell.totalDownloadLabel.text = [NSString stringWithFormat:@"%.2fMB",task.downloadProgress.totalUnitCount/(1024*1024.0)];
+        downloadCell.currentDownloadLabel.text = [NSString stringWithFormat:@"%.2fMB",task.downloadProgress.completedUnitCount/(1024*1024.0)];
+        downloadCell.progressView.progress = task.downloadProgress.fractionCompleted;
+        downloadCell.percentLabel.text = [NSString stringWithFormat:@"%.2f%%",task.downloadProgress.fractionCompleted * 100];
     }
     return cell;
 }
@@ -146,8 +161,17 @@ typedef NS_ENUM(NSUInteger, Command) {
         
     }else if (tableView == self.downloadTableView) {
         VMDownloadTask *task = self.downloadTasks[indexPath.row];
-        [task pauseTask];
+        if (task.mState == DownloadTaskStateOngoing) {
+            [task pauseTask];
+        }else if (task.mState == DownloadTaskStatePaused) {
+            [task resumeTask];
+        }
     }
     
 }
+
+- (void)updateCell:(VMDownloadTaskTableViewCell *)cell {
+    
+}
+
 @end

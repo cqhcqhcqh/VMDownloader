@@ -9,8 +9,6 @@
 #import "CPMessageOperation.h"
 NSString* const MessageMapping [] = {
     [MessageTypeEventInit] = @"MessageTypeEventInit",
-//    [MessageTypeEventStartDownload] = @"MessageTypeEventStartDownload",
-//    [MessageTypeEventPaused] = @"MessageTypeEventPaused",
     [MessageTypeEventRetryRequest] = @"MessageTypeEventRetryRequest",
     [MessageTypeEventVerifyPass] = @"MessageTypeEventVerifyPass",
     [MessageTypeEventVerifyFail] = @"MessageTypeEventVerifyFail",
@@ -25,9 +23,6 @@ NSString* const MessageMapping [] = {
     [MessageTypeActionPaused] = @"MessageTypeActionPaused",
     [MessageTypeActionDelete] = @"MessageTypeActionDelete",
 };
-//inline NSString* MessageTypeDescription(MessageType type) {
-//    return MessageMapping[type];
-//}
 @interface CPMessageOperation ()
 /*
  * 利用无名扩展 让readOnly属性,在内部可以变成可读可写属性。
@@ -114,10 +109,22 @@ NSString* const MessageMapping [] = {
 
 @implementation CPMessage
 
+- (instancetype)initWithType:(MessageType)type obj:(id)object {
+    return [self initWithType:type subType:0 code:0 obj:object];
+}
++ (instancetype)messageWithType:(MessageType)type obj:(id)object {
+    return  [[self alloc] initWithType:type obj:object];
+}
 + (instancetype)messageWithType:(MessageType)type
 {
     return [[self alloc] initWithType:type subType:0 code:0 obj:nil];
 }
+- (instancetype)initWithType:(MessageType)type
+{
+    return [self initWithType:type subType:0 code:0 obj:nil];
+}
+
+
 + (instancetype)messageWithType:(MessageType)type subType:(int)subType code:(int)code obj:(id)object
 {
     return [[self alloc] initWithType:type subType:subType code:code obj:object];
@@ -134,13 +141,13 @@ NSString* const MessageMapping [] = {
     return self;
 }
 
-- (instancetype)initWithType:(MessageType)type
-{
-    return [self initWithType:type subType:0 code:0 obj:nil];
-}
+
+
 
 - (NSString *)description {
     return [NSString stringWithFormat:@"type:%zd subType:%d code:%d id:%@",_type,_subType,_code,_obj];
 }
+
+
 @end
 

@@ -46,14 +46,27 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
 };
 
 @interface VMDownloadRequest : NSObject
+/**
+ *  文件下载的URL
+ */
 @property (readwrite, nonatomic, copy) NSString *url;
+
+/**
+ *  文件的目的文件路径
+ */
 @property (readwrite, nonatomic, copy) NSString *destinationFilePath;
+/**
+ *  MD5值
+ */
 @property (readwrite, nonatomic, copy) NSString *MD5Value;
 
 /**
  *  MD5类型 还是Sha1类型...
  */
 @property (readwrite, nonatomic, copy) NSString *encriptDescription;
+/**
+ *  主题
+ */
 @property (readwrite, nonatomic, copy) NSString *title;
 @end
 
@@ -61,9 +74,30 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
 @class VMDownloaderManager;
 @interface DownloadState : State
 @property (readwrite, nonatomic, assign) BOOL isCachedTask;
+/**
+ *  state对应的Task
+ *  注意这里是弱引用,类似避免循环引用
+ */
 @property (readonly, nonatomic, weak) VMDownloadTask *downloadTask;
+
+/**
+ *  默认构造方法
+ *
+ *  @param downloadTask State对应的Task
+ *
+ *  @return State实例
+ */
 - (instancetype)initWithDownloadTask:(VMDownloadTask *)downloadTask;
 + (instancetype)downloadStateWithDownloadTask:(VMDownloadTask *)downloadTask;
+
+/**
+ *  是否进行缓存的默认方法
+ *
+ *  @param downloadTask   State对应的Task
+ *  @param isNotCacheTask 不需要缓存的标识
+ *  不需要缓存的State默认都重写这个方法,isNotCacheTask传入YES
+ *  @return State实例
+ */
 - (instancetype)initWithDownloadTask:(VMDownloadTask *)downloadTask isNotCacheTask:(BOOL)isNotCacheTask;
 + (instancetype)downloadStateWithDownloadTask:(VMDownloadTask *)downloadTask isNotCacheTask:(BOOL)isNotCacheTask;
 /**
@@ -79,8 +113,9 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
 
 @class VMDownloadRequest;
 
-
 @interface VMDownloadTask : StateMachine
+@property (readwrite, nonatomic, strong) NSProgress *downloadProgress;
+#pragma mark - 需要往数据库中存入的属性
 @property (readonly, nonatomic, copy) NSString *title;
 @property (readonly, nonatomic, copy) NSString *url;
 @property (readonly, nonatomic, copy) NSString *filePath;
@@ -97,35 +132,38 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
 @property (readwrite, nonatomic, assign) DownloadTaskState mState;
 
 @property (readonly, nonatomic, assign) BOOL needVerify;
-
+#pragma mark - 任务中的状态
 @property (readonly, nonatomic, strong) DownloadState *mInit;
 @property (readonly, nonatomic, strong) DownloadState *mStarted;
 @property (readonly, nonatomic, strong) DownloadState *mDownloading;
 @property (readonly, nonatomic, strong) DownloadState *mWaiting;
 @property (readonly, nonatomic, strong) DownloadState *mRetry;
 @property (readonly, nonatomic, strong) DownloadState *mOngoing;
-
 @property (readonly, nonatomic, strong) DownloadState *mVerifying;
-
 @property (readonly, nonatomic, strong) DownloadState *mStopped;
 @property (readonly, nonatomic, strong) DownloadState *mPaused;
 @property (readonly, nonatomic, strong) DownloadState *mIOError;
-
 @property (readonly, nonatomic, strong) DownloadState *mDone;
 @property (readonly, nonatomic, strong) DownloadState *mSuccess;
 @property (readonly, nonatomic, strong) DownloadState *mFailure;
 
-
+/**
+ *  Task的基本网络配置
+ */
 @property (readwrite, nonatomic, assign) BOOL allowMobileNetWork;
 @property (readwrite, nonatomic, assign) BOOL allowWifiNetWork;
 
-
-
+/**
+ *  Task对应的DownloaderManager
+ *  注意是弱引用
+ */
 @property (readonly, nonatomic, weak) VMDownloaderManager *downloaderManager;
-@property (readonly, nonatomic, weak) VMDownloadConfig *downloaderConfig;
-@property (readwrite, nonatomic, assign) NSInteger retryCount;
 
-@property (readonly, nonatomic, assign) BOOL hasDataChanged;
+/**
+ *  Task对应的DownloaderConfig
+ *  注意是弱引用
+ */
+@property (readonly, nonatomic, weak) VMDownloadConfig *downloaderConfig;
 
 /**
  *  Manager enqueue时候 创建Task的事例方法
@@ -150,16 +188,36 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
  */
 + (instancetype)recoveryDownloadTaskWithRunloopThread:(NSThread *)thread key:(NSString *)key resultSet:(FMResultSet *)resultSet;
 
+#pragma mark - 对外暴露的接口,操作DownloadTask
 /**
- *  对外暴露的接口,操作DownloadTask
+ * 恢复任务
  */
 - (void)resumeTask;
+/**
+ *  暂停任务
+ */
 - (void)pauseTask;
+/**
+ *  删除任务
+ */
 - (void)deleteTask;
 
-
+/**
+ *  开始任务
+ */
 - (void)start;
-- (void)saveTaskState;
+/**
+ *  存储任务实例
+ */
+- (void)saveTask;
+/**
+ *  判断当前任务对应的状态层级
+ *  这个有不懂的可以讨论BITMASK
+ *
+ *  @param level 状态层级
+ *
+ *  @return 是否为此层级
+ */
 - (BOOL)isCurrentStateLevel:(DownloadTaskLevel)level;
 @end
 
@@ -170,7 +228,7 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
 @interface Waiting : DownloadState
 @end
 @interface Downloading : DownloadState
-@property (readwrite, nonatomic, assign) NSInteger tryCount;
+//@property (readwrite, nonatomic, assign) NSInteger tryCount;
 @end
 @interface Ongoing : DownloadState
 @end

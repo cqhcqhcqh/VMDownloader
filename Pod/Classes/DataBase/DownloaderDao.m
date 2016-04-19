@@ -79,4 +79,10 @@ static FMDatabase *database;
     }
     return array;
 }
+
++ (void)deleteDownloadTaskWithUUID:(NSString *)uuid
+{
+    BOOL deleteSuccess =[database executeUpdate:@"DELETE FROM t_downloads WHERE _id = ?",uuid];
+    DatabaseLog(@"删除下载任务 uuid:%@ %@",uuid,deleteSuccess?@"成功":@"失败");
+}
 @end

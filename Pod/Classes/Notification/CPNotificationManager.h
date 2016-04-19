@@ -7,23 +7,17 @@
 //
 
 #import <Foundation/Foundation.h>
-//#import "CPNotificationCommon.h"
+FOUNDATION_EXTERN NSString *const kMessageTypeEventProgress;
 
 @interface CPNotificationManager : NSObject
-+ (void)registerWithObserver:(id)observer name:(NSString *)aName selector:(SEL)sel;
-
-+ (void)postNotificationWithName:(NSString *)aName message:(NSString *)AnewValue;
-
-//+ (void)postNotificationWithName:(NSString *)aName valueOld:(id)aOldValue valueNew:(id)aNewValue;
-
 + (void)postNotificationWithName:(NSString *)aName type:(int)type;
-
-+ (void)postNotificationWithName:(NSString *)aName noteObj:(id)aNoteObj;
-
++ (void)postNotificationWithName:(NSString *)aName message:(NSString *)message;
 + (void)postNotificationWithName:(NSString *)aName type:(int)type message:(NSString *)message;
-
 + (void)postNotificationWithName:(NSString *)aName type:(int)type message:(NSString *)message obj:(id)obj;
++ (void)postNotificationWithName:(NSString *)aName type:(int)type message:(NSString *)message obj:(id)obj userInfo:(NSDictionary *)userInfo;
 
+
++ (void)registerWithObserver:(id)observer name:(NSString *)aName selector:(SEL)sel;
 + (void)removeRegisterWithObserver:(id)aObserver;
 @end
 
@@ -32,4 +26,5 @@
 @property (nonatomic ,copy) NSString *message;
 @property (nonatomic ,assign) int type;
 @property (nonatomic ,strong) id obj;
+@property (readwrite, nonatomic, strong) NSDictionary *userInfo;
 @end
