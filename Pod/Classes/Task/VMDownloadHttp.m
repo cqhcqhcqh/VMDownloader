@@ -51,7 +51,9 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
     if (!_session) {
         // 1.创建Session
 #warning delegate会对self有个强引用,注意回收...,防止内存泄露
-        _session =  [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:[NSOperationQueue mainQueue]];
+        NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+        queue.maxConcurrentOperationCount = 1;
+        _session =  [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:queue];
     }
     return _session;
 }
@@ -63,7 +65,7 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
     if (!_task) {
         
         // 设置请求头
-        NSString *range = [NSString stringWithFormat:@"bytes:%lld-", [self getFileSizeWithPath:self.path]];
+        NSString *range = [NSString stringWithFormat:@"bytes=%lld-", [self getFileSizeWithPath:self.path]];
         [self.request setValue:range forHTTPHeaderField:@"Range"];
         
         _task = [self.session dataTaskWithRequest:self.request];
@@ -92,7 +94,7 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
     self.totalLength = response.expectedContentLength + [self getFileSizeWithPath:self.path];
     
     // 打开输出流
-    self.outputStream = [NSOutputStream outputStreamToFileAtPath:self.path append:NO];
+    self.outputStream = [NSOutputStream outputStreamToFileAtPath:self.path append:YES];
     [self.outputStream open];
 }
 

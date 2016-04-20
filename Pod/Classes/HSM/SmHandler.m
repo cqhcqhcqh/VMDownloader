@@ -95,15 +95,15 @@
     
     //1、根据初始状态获取 状态对应的StateInfo
     StateInfo *curStateInfo = self.mapStateInfo[NSStringFromClass(self.initialState.class)];
-    __block NSString *tempStateStack = @"临时状态栈构建完成:\n[";
+    __block NSString *tempStateStackLog = @"临时状态栈构建完成:\n[";
     
     //2、构建临时状态栈
     while (curStateInfo != nil) {
-        tempStateStack = [tempStateStack stringByAppendingFormat:@"index:%d state:%@,\n",_tempStateStackCount,NSStringFromClass(curStateInfo.state.class)];
+        tempStateStackLog = [tempStateStackLog stringByAppendingFormat:@"index:%d state:%@,\n",_tempStateStackCount,NSStringFromClass(curStateInfo.state.class)];
         _tempStateStack[_tempStateStackCount++] = curStateInfo;
         curStateInfo = curStateInfo.parentStateInfo;
     }
-    CPStateMechineLog(@"%@]",tempStateStack);
+    CPStateMechineLog(@"%@]",tempStateStackLog);
     
     //3、通过将栈顶的Index赋值为-1的方式,状态栈滞空。
     _stateStackTopIndex = -1;
@@ -229,12 +229,12 @@
     NSString *log = @"构建需要Enter的State的临时状态栈:\n[";
     do {
         //2、首先将目的状态存放至临时状态栈中
-        log = [log stringByAppendingFormat:@"index:%zd state:%@,\n",_tempStateStackCount,[destStateInfo.state getName]];
+        log = [log stringByAppendingFormat:@"index:%zd state:%@,\n active:%@",_tempStateStackCount,[destStateInfo.state getName],destStateInfo.active?@"激活过了":@"未激活"];
         self.tempStateStack[_tempStateStackCount++] = destStateInfo;
         destStateInfo = destStateInfo.parentStateInfo;
         //3、如果目的状态有父状态,并且父状态没有active的话,继续做第二步的事情
     } while (destStateInfo != nil && !(destStateInfo.active));
-    CPStateMechineLog(@"%@",log);
+    CPStateMechineLog(@"%@ destStateInfo:%@ state:%@ active:%@]\n",log,destStateInfo,[destStateInfo.state getName],[destStateInfo active]?@"激活过了":@"未激活");
     return destStateInfo;
     
 }
@@ -280,6 +280,7 @@
     for (NSInteger index = startIndex; index <= self.stateStackTopIndex; index++) {
         StateInfo *stateInfo = self.stateStack[index];
         [stateInfo.state enter];
+        CPStateMechineLog(@"%@ ENTER....",NSStringFromClass([stateInfo.state class]));
         [stateInfo setActive:YES];
     }
 }
@@ -296,6 +297,7 @@
         StateInfo *curStateInfo =  self.stateStack[_stateStackTopIndex];
         State *curState = [curStateInfo state];
         [curState exit];
+        CPStateMechineLog(@"%@ EXIT....",NSStringFromClass([curState class]));
         [curStateInfo setActive:NO];
         _stateStackTopIndex -= 1;
     }

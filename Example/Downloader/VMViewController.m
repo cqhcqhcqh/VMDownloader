@@ -9,6 +9,7 @@
 #import "VMViewController.h"
 #import "VMVideoResource.h"
 #import "VMDownloadTaskTableViewCell.h"
+#import "VMMoviePlayerViewController.h"
 
 @import Downloader;
 @interface VMViewController ()<UITableViewDelegate,UITableViewDataSource>
@@ -69,20 +70,26 @@ typedef NS_ENUM(NSUInteger, Command) {
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    self.manager = [VMDownloaderManager managerWithIdentifier:@"downloader"];
-    self.downloadTasks = [[DownloaderDao recoverTasksWithThread:_manager.downloadTaskRunLoopThread key:_manager.downloadConfig.identifier miniState:0] mutableCopy];
-    [self.downloadTableView reloadData];
+    
+    [CPNotificationManager registerWithObserver:self name:kMessageTypeEventProgress selector:@selector(progressChange:)];
+    [CPNotificationManager registerWithObserver:self name:kDownloadStateChange selector:@selector(downloadStateChange:)];
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    [CPNotificationManager removeRegisterWithObserver:self];
 }
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     
-    [CPNotificationManager registerWithObserver:self name:kMessageTypeEventProgress selector:@selector(progressChange:)];
-    [CPNotificationManager registerWithObserver:self name:kDownloadStateChange selector:@selector(downloadStateChange:)];
-//    [CPNotificationManager registerWithObserver:self name:kDownloadTaskInsert selector:@selector(downloadTaskInsert:)];
-    
+    self.manager = [VMDownloaderManager managerWithIdentifier:@"downloader"];
+    self.downloadTasks = [[DownloaderDao recoverTasksWithThread:_manager.downloadTaskRunLoopThread key:_manager.downloadConfig.identifier miniState:0] mutableCopy];
+    [self.downloadTableView reloadData];
 }
+
 
 - (void)progressChange:(NSNotification *)note
 {
@@ -158,8 +165,13 @@ typedef NS_ENUM(NSUInteger, Command) {
         VMDownloadTask *task = self.downloadTasks[indexPath.row];
         if (task.mState == DownloadTaskStateOngoing) {
             [task pauseTask];
-        }else if (task.mState == DownloadTaskStatePaused) {
+        }else if (task.mState == DownloadTaskStatePaused || task.mState == DownloadTaskStateRetry) {
             [task resumeTask];
+        }else if (task.mState == DownloadTaskStateSuccess) {
+            
+            NSURL *fileUrl = [NSURL fileURLWithPath:[[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:task.filePath]];
+            VMMoviePlayerViewController *playerVc = [[VMMoviePlayerViewController alloc] initWithContentURL:fileUrl];
+            [self presentMoviePlayerViewControllerAnimated:playerVc];
         }
     }
 }

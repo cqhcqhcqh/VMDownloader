@@ -125,12 +125,13 @@ static NSMapTable *CACHE_TASKS_REF;
     return self.mMd5.length > 0;
 }
 
-+ (instancetype)recoveryDownloadTaskWithRunloopThread:(NSThread *)thread key:(NSString *)key resultSet:(FMResultSet *)resultSet{
-    return [[self alloc] initWithRunloopThread:thread key:key resultSet:resultSet];
++ (instancetype)recoveryDownloadTaskWithRunloopThread:(NSThread *)thread key:(NSString *)key resultSet:(FMResultSet *)resultSet autoStart:(BOOL)autoStart{
+    return [[self alloc] initWithRunloopThread:thread key:key resultSet:resultSet autoStart:autoStart];
 }
 
 
-- (instancetype)initWithRunloopThread:(NSThread *)thread key:(NSString *)key resultSet:(FMResultSet *)resultSet {
+- (instancetype)initWithRunloopThread:(NSThread *)thread key:(NSString *)key resultSet:(FMResultSet *)resultSet autoStart:(BOOL)autoStart
+{
     NSAssert(resultSet != NULL, @"resultSet is null");
     
     VMDownloaderManager *manager = [VMDownloaderManager getInstanceWithKey:key];
@@ -160,7 +161,9 @@ static NSMapTable *CACHE_TASKS_REF;
     task.mModifyDate = [resultSet stringForColumn:@"_modify"];
     task.netWorkMode = [resultSet intForColumn:@"netWorkMode"];
     
-    [task start];
+    if (autoStart) {
+        [task start];
+    }
     return task;
     
 }
@@ -187,6 +190,11 @@ static NSMapTable *CACHE_TASKS_REF;
     task.mState = DownloadTaskStateInit;
     task.title = request.title;
     task.netWorkMode = MASK_NETWORK_WIFI;
+    task.contentLength = -1;
+    task.mIOError = @"";
+    task.mimetype = request.mimetype;
+    task.mProgress = 0;
+    
     return task;
 }
 
@@ -250,6 +258,7 @@ static NSMapTable *CACHE_TASKS_REF;
     
     [self addState:_mInit parentState:nil];
     [self addState:_mStarted parentState:_mInit];
+    
     [self addState:_mWaiting parentState:_mStarted];
     
     [self addState:_mDownloading parentState:_mStarted];
@@ -257,6 +266,7 @@ static NSMapTable *CACHE_TASKS_REF;
     [self addState:_mOngoing parentState:_mDownloading];
     
     [self addState:_mVerifying parentState:_mInit];
+    
     [self addState:_mStopped parentState:_mInit];
     [self addState:_mPaused parentState:_mStopped];
     [self addState:_mIOError parentState:_mStopped];
@@ -265,10 +275,10 @@ static NSMapTable *CACHE_TASKS_REF;
     [self addState:_mSuccess parentState:_mDone];
     [self addState:_mFailure parentState:_mDone];
     
-//    for (NSString *key in self.smHandler.mapStateInfo.allKeys) {
-//        StateInfo *stateInfo = self.smHandler.mapStateInfo[key];
-//        //        NSLog(@"key %@ state:%@ parentState:%@",key,stateInfo.state,stateInfo.parentStateInfo.state);
-//    }
+    //    for (NSString *key in self.smHandler.mapStateInfo.allKeys) {
+    //        StateInfo *stateInfo = self.smHandler.mapStateInfo[key];
+    //        //        NSLog(@"key %@ state:%@ parentState:%@",key,stateInfo.state,stateInfo.parentStateInfo.state);
+    //    }
     if ([self isCurrentStateLevel:DownloadTaskLevelStarted|DownloadTaskStateInit]) {
         [self.smHandler setInitialState:_mStarted];
     }else {
@@ -280,31 +290,31 @@ static NSMapTable *CACHE_TASKS_REF;
 - (State *)getHSMState {
     switch (self.mState) {
         case DownloadTaskStateRetry:
-            return _mRetry;
+        return _mRetry;
         
         case DownloadTaskStateOngoing:
-            return _mOngoing;
-           
+        return _mOngoing;
+        
         case DownloadTaskStateWaiting:
-            return _mWaiting;
-            
+        return _mWaiting;
+        
         case DownloadTaskStateIOError:
-            return _mIOError;
-            
+        return _mIOError;
+        
         case DownloadTaskStatePaused:
-            return _mPaused;
-            
+        return _mPaused;
+        
         case DownloadTaskStateVerifying:
-            return _mVerifying;
-            
+        return _mVerifying;
+        
         case DownloadTaskStateSuccess:
-            return _mSuccess;
-            
+        return _mSuccess;
+        
         case DownloadTaskStateFailure:
-            return _mFailure;
-
+        return _mFailure;
+        
         default:
-            return _mInit;
+        return _mInit;
     }
 }
 
@@ -403,6 +413,7 @@ static NSMapTable *CACHE_TASKS_REF;
 
 - (void)downloadRun
 {
+    
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSError *createDir = nil;
     BOOL isDir = NO;
@@ -421,7 +432,7 @@ static NSMapTable *CACHE_TASKS_REF;
     
     VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
     self.urlSessionDownloadTask = [downloadHttp downloadTaskWithRequest:request progress:^(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
-
+        
         self.mProgress = totalBytesWritten;
         self.contentLength = totalBytesExpectedToWrite;
         
@@ -430,32 +441,35 @@ static NSMapTable *CACHE_TASKS_REF;
             
             UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;
             
-            UInt64 deltaProgress = totalBytesWritten -lastDownloadProgress;
+            UInt64 deltaProgress = totalBytesWritten - lastDownloadProgress;
             
             if (deltaTimeInterval >= 1000) {
                 
-                 self.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024);
-                NSLog(@"下载速度 %f m/s",self.mSpeed);
+                self.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024);
+                NSLog(@"mProgress:%lld  contentLength:%lld 下载速度 %f m/s",self.mProgress,self.contentLength,self.mSpeed);
                 
-                [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.contentLength),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}] delay:1.0];
+                [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.mProgress),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}] delay:1.0];
                 lastDownloadProgress = totalBytesWritten;
                 lastTimeInterval = currentTimeInterval;
             }
         }else {
             
-            [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.contentLength),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}] delay:1.0];
+            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.mProgress),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}]];
         }
         
     } fileURL:^NSString *(NSURLResponse *response) {
         return filePath;
     } completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
         if (error) {
-            [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.contentLength),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}] delay:1.0];
+            //            [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.contentLength),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}] delay:1.0];
+            [self sendMessageType:MessageTypeEventDownloadException];
+            
         }else {
             [self sendMessageType:MessageTypeEventTaskDone];
         }
     }];
     [self.urlSessionDownloadTask resume];
+    
 }
 
 
@@ -488,18 +502,18 @@ static NSMapTable *CACHE_TASKS_REF;
     //处理DELETE_TASK Event
     switch (message.type) {
         case MessageTypeActionDelete:
-            //删除任务和文件 OR Just 任务
-            if([message.obj boolValue]){
-                NSError *deleteError = nil;
-                BOOL deleteSuccess = [[NSFileManager defaultManager] removeItemAtPath:[DocumenDir stringByAppendingPathComponent:self.downloadTask.filePath] error:&deleteError];
-                if (deleteError) {
-                    CPStateMechineLog(@"删除文件:%@ error%@",deleteSuccess?@"成功":@"失败",[deleteError userInfo]);
-                }
-                //quitNow();
+        //删除任务和文件 OR Just 任务
+        if([message.obj boolValue]){
+            NSError *deleteError = nil;
+            BOOL deleteSuccess = [[NSFileManager defaultManager] removeItemAtPath:[DocumenDir stringByAppendingPathComponent:self.downloadTask.filePath] error:&deleteError];
+            if (deleteError) {
+                CPStateMechineLog(@"删除文件:%@ error%@",deleteSuccess?@"成功":@"失败",[deleteError userInfo]);
             }
-            return YES;
+            //quitNow();
+        }
+        return YES;
         default:
-            return NO;
+        return NO;
     }
     
 }
@@ -524,11 +538,11 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     switch (message.type) {
         case MessageTypeActionPaused:
-            [self.downloadTask transitionToState:self.downloadTask.mPaused];
-            return YES;
-            
+        [self.downloadTask transitionToState:self.downloadTask.mPaused];
+        return YES;
+        
         default:
-            return NO;
+        return NO;
     }
 }
 @end
@@ -561,17 +575,17 @@ static NSMapTable *CACHE_TASKS_REF;
     switch (message.type) {
         case MessageTypeEventTaskDone:
 #warning 为什么要在这里存储一下状态呢?==>Downloading的过程中收到了下载完成的Event。。。
-            CPStateMechineLog(@"下载完成");
-            [self.downloadTask saveTask];
-            if([self.downloadTask needVerify]){
-                [self.downloadTask transitionToState:self.downloadTask.mVerifying];
-            }else {
-                [self.downloadTask transitionToState:self.downloadTask.mSuccess];
-            }
-            return YES;
-            
+        CPStateMechineLog(@"下载完成");
+        [self.downloadTask saveTask];
+        if([self.downloadTask needVerify]){
+            [self.downloadTask transitionToState:self.downloadTask.mVerifying];
+        }else {
+            [self.downloadTask transitionToState:self.downloadTask.mSuccess];
+        }
+        return YES;
+        
         default:
-            return NO;
+        return NO;
     }
 }
 @end
@@ -611,19 +625,21 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     switch (message.type) {
         case MessageTypeEventNetworkConnectionChange:
-            if ([self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
-                return YES;
-            }
-        case MessageTypeEventDownloadException:
-            [self.downloadTask transitionToState:self.downloadTask.mRetry];
-            [self.downloadTask removeMessageWithType:MessageTypeEventProgress];
-        case MessageTypeEventProgress:
-            //notify 下载进度
-            [CPNotificationManager postNotificationWithName:kMessageTypeEventProgress type:0 message:nil obj:self.downloadTask userInfo:@{@"dynamicNum":message.obj}];
+        if ([self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
             return YES;
-            
+        }
+        case MessageTypeEventDownloadException:
+        [self.downloadTask transitionToState:self.downloadTask.mRetry];
+        [self.downloadTask removeMessageWithType:MessageTypeEventProgress];
+        case MessageTypeEventProgress:
+        //notify 下载进度
+        if (message.obj) {
+            [CPNotificationManager postNotificationWithName:kMessageTypeEventProgress type:0 message:nil obj:self.downloadTask userInfo:@{@"dynamicNum":message.obj}];
+        }
+        return YES;
+        
         default:
-            return NO;
+        return NO;
     }
 }
 @end
@@ -664,41 +680,41 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     switch (message.type) {
         case MessageTypeActionStart:
-            if (![self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
-                //mEventBus.post
-                return YES;
-            }
-            /*
-             * 在Retry的状态下,如果网络状况发生了变化
-             * 如果有网络的话,直接切换到下载状态
-             * 如果没有网络的话,还是在当前状态下等着
-             
-             * 如果用户在等待的过程中,RetryRequest的话,还是需要判断网络状态
-             * Retry的次数,只有三次机会。每次进入到Retry的时候,会隔三秒时间去重新发一个RetryRequest.
-             *
-             */
+        if (![self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
+            //mEventBus.post
+            return YES;
+        }
+        /*
+         * 在Retry的状态下,如果网络状况发生了变化
+         * 如果有网络的话,直接切换到下载状态
+         * 如果没有网络的话,还是在当前状态下等着
+         
+         * 如果用户在等待的过程中,RetryRequest的话,还是需要判断网络状态
+         * Retry的次数,只有三次机会。每次进入到Retry的时候,会隔三秒时间去重新发一个RetryRequest.
+         *
+         */
         case MessageTypeEventNetworkConnectionChange:
         case MessageTypeEventRetryRequest:
-            if ([self.downloadTask retryCount] <= self.downloadTask.downloaderConfig.maxDownloadCount) {
-                if ([self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
-                    //进入到Retry时
-                    if([[NSFileManager defaultManager] fileExistsAtPath:[DocumenDir stringByAppendingPathComponent:self.downloadTask.filePath]]){
-                        
-                        [self.downloadTask transitionToState:self.downloadTask.mOngoing];
-                    }else {
-                        //                        [self.downloadTask saveTask]; 进行save的原因是因为要保存mError
-                        [self.downloadTask transitionToState:self.downloadTask.mIOError];
-                    }
+        if ([self.downloadTask retryCount] <= self.downloadTask.downloaderConfig.maxDownloadCount) {
+            if ([self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
+                //进入到Retry时
+                if([[NSFileManager defaultManager] fileExistsAtPath:[DocumenDir stringByAppendingPathComponent:self.downloadTask.filePath]]){
+                    
+                    [self.downloadTask transitionToState:self.downloadTask.mOngoing];
+                }else {
+                    //                        [self.downloadTask saveTask]; 进行save的原因是因为要保存mError
+                    [self.downloadTask transitionToState:self.downloadTask.mIOError];
                 }
-            }else {
-                CPStateMechineLog(@"多次重试都失败");
-                [self.downloadTask transitionToState:self.downloadTask.mIOError];
-                //                [self.downloadTask saveTask];
             }
-            return YES;
-            
+        }else {
+            CPStateMechineLog(@"多次重试都失败");
+            [self.downloadTask transitionToState:self.downloadTask.mIOError];
+            //                [self.downloadTask saveTask];
+        }
+        return YES;
+        
         default:
-            return NO;
+        return NO;
     }
     
 }
@@ -747,10 +763,10 @@ static NSMapTable *CACHE_TASKS_REF;
                 [firstWaitingTask sendMessageType:MessageTypeEventDownloadingAvailable];
             }
         }
-            return YES;
-            
+        return YES;
+        
         default:
-            return NO;
+        return NO;
     }
     
 }
@@ -783,13 +799,13 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     switch (message.type) {
         case MessageTypeEventVerifyPass:
-            [self.downloadTask transitionToState:self.downloadTask.mSuccess];
-            return YES;
+        [self.downloadTask transitionToState:self.downloadTask.mSuccess];
+        return YES;
         case MessageTypeEventVerifyFail:
-            [self.downloadTask transitionToState:self.downloadTask.mFailure];
-            return YES;
+        [self.downloadTask transitionToState:self.downloadTask.mFailure];
+        return YES;
         default:
-            return NO;
+        return NO;
     }
 }
 @end
@@ -804,10 +820,10 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     switch (message.type) {
         case MessageTypeActionStart:
-            [self.downloadTask transitionToState:self.downloadTask.mStarted];
-            return YES;
+        [self.downloadTask transitionToState:self.downloadTask.mStarted];
+        return YES;
         default:
-            return NO;
+        return NO;
     }
 }
 @end

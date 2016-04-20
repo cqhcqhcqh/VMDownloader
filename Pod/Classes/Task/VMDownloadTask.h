@@ -68,6 +68,8 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
  *  主题
  */
 @property (readwrite, nonatomic, copy) NSString *title;
+
+@property (readwrite, nonatomic, copy) NSString *mimetype;
 @end
 
 
@@ -189,10 +191,10 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
  *  @param thread    Task.handler(Queue).operation isFinished 调用的thread
  *  @param key       数据库configuration的key
  *  @param resultSet 游标
- *
+ *  @param autoStart 是否自动启动
  *  @return Task
  */
-+ (instancetype)recoveryDownloadTaskWithRunloopThread:(NSThread *)thread key:(NSString *)key resultSet:(FMResultSet *)resultSet;
++ (instancetype)recoveryDownloadTaskWithRunloopThread:(NSThread *)thread key:(NSString *)key resultSet:(FMResultSet *)resultSet autoStart:(BOOL)autoStart;
 
 #pragma mark - 对外暴露的接口,操作DownloadTask
 /**

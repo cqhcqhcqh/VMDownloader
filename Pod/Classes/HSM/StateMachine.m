@@ -16,6 +16,7 @@
 
 @property(nonatomic,strong) State *currentState;
 @property (readwrite, nonatomic, strong) SmHandler *smHandler;
+
 @end
 
 @implementation StateMachine

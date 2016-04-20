@@ -70,7 +70,7 @@ static NSMutableDictionary *MANAGERS;
 {
     if (self == [VMDownloaderManager class]) {
         MANAGERS = [NSMutableDictionary dictionary];
-        [CPLoggerManager openLogger:YES];
+//        [CPLoggerManager openLogger:YES];
     }
 }
 
@@ -166,6 +166,7 @@ static NSMutableDictionary *MANAGERS;
 
 - (void)startAll:(NSArray *)allTasks {
     for (VMDownloadTask *task in allTasks) {
+        NSLog(@"startAll %@",task);
         [task start];
     }
 }
@@ -200,7 +201,7 @@ static NSMutableDictionary *MANAGERS;
 }
 
 - (void)sendNetworkChanged {
-    for (VMDownloadTask *task in [self getTasksInState:DownloadState.self]) {
+    for (VMDownloadTask *task in [self getTasksInState:Downloading.self]) {
         [task sendMessageType:MessageTypeEventNetworkConnectionChange];
     }
 }

@@ -24,6 +24,7 @@
 		AF519C661CC482350037B7BC /* libsqlite3.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = AF519C651CC482350037B7BC /* libsqlite3.0.tbd */; };
 		AF519C6E1CC48F500037B7BC /* Downloader.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF519C6D1CC48F500037B7BC /* Downloader.framework */; };
 		AF73A5571CC5CA64004116DC /* VMDownloadTaskTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = AF73A5561CC5CA64004116DC /* VMDownloadTaskTableViewCell.m */; };
+		AF73A5861CC77794004116DC /* VMMoviePlayerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AF73A5851CC77794004116DC /* VMMoviePlayerViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +68,8 @@
 		AF519C6D1CC48F500037B7BC /* Downloader.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Downloader.framework; path = "../../../../Library/Developer/Xcode/DerivedData/Downloader-bmhmiyaduzdkpkgujjkoegmakrhi/Build/Products/Debug-iphoneos/Downloader.framework"; sourceTree = "<group>"; };
 		AF73A5551CC5CA64004116DC /* VMDownloadTaskTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VMDownloadTaskTableViewCell.h; sourceTree = "<group>"; };
 		AF73A5561CC5CA64004116DC /* VMDownloadTaskTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VMDownloadTaskTableViewCell.m; sourceTree = "<group>"; };
+		AF73A5841CC77794004116DC /* VMMoviePlayerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VMMoviePlayerViewController.h; sourceTree = "<group>"; };
+		AF73A5851CC77794004116DC /* VMMoviePlayerViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VMMoviePlayerViewController.m; sourceTree = "<group>"; };
 		E41C485A7E183F3C6AAECCCB /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		E81D589211D073920E023285 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -139,6 +142,8 @@
 				AF519C611CC481110037B7BC /* VMViewController.m */,
 				AF73A5551CC5CA64004116DC /* VMDownloadTaskTableViewCell.h */,
 				AF73A5561CC5CA64004116DC /* VMDownloadTaskTableViewCell.m */,
+				AF73A5841CC77794004116DC /* VMMoviePlayerViewController.h */,
+				AF73A5851CC77794004116DC /* VMMoviePlayerViewController.m */,
 				AF519C631CC4812F0037B7BC /* Main.storyboard */,
 				6003F5A8195388D20070C39A /* Images.xcassets */,
 				6003F594195388D20070C39A /* Supporting Files */,
@@ -404,6 +409,7 @@
 				6003F59A195388D20070C39A /* main.m in Sources */,
 				AF73A5571CC5CA64004116DC /* VMDownloadTaskTableViewCell.m in Sources */,
 				AF519C621CC481110037B7BC /* VMViewController.m in Sources */,
+				AF73A5861CC77794004116DC /* VMMoviePlayerViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
