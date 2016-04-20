@@ -38,6 +38,7 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
     self.downloadProgress = downloadProgressBlock;
     if (fileURL) {
         self.path = fileURL(nil);
+        self.currentLength = [self getFileSizeWithPath:self.path];
     }
     self.request = [NSMutableURLRequest requestWithURL:request.URL];
     self.completionHandler = completionHandler;
@@ -62,7 +63,7 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
     if (!_task) {
         
         // 设置请求头
-        NSString *range = [NSString stringWithFormat:@"bytes:%zd-", [self getFileSizeWithPath:self.path]];
+        NSString *range = [NSString stringWithFormat:@"bytes:%lld-", [self getFileSizeWithPath:self.path]];
         [self.request setValue:range forHTTPHeaderField:@"Range"];
         
         _task = [self.session dataTaskWithRequest:self.request];
@@ -71,9 +72,9 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
 }
 
 // 从本地文件中获取已下载文件的大小
-- (NSUInteger)getFileSizeWithPath:(NSString *)path
+- (UInt64)getFileSizeWithPath:(NSString *)path
 {
-    NSUInteger currentSize = [[[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil][NSFileSize] integerValue];
+    UInt64 currentSize = [[[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil][NSFileSize] longLongValue];
     return currentSize;
 }
 
@@ -99,7 +100,7 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
 // data 此次接收到的数据
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data
 {
-    NSLog(@"didReceiveData %zd",data.length);
+//    NSLog(@"didReceiveData %zd",data.length);
     // 累加已经下载的大小
     self.currentLength += data.length;
     

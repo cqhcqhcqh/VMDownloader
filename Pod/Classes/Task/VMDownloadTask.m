@@ -43,9 +43,11 @@ NSString* const DownloadStateDesc[] = {
 @property (readwrite, nonatomic, copy) NSString *mimetype;
 @property (readwrite, nonatomic, copy) NSString *sha1;
 @property (readwrite, nonatomic, copy) NSString *error;
-@property (readwrite, nonatomic, assign) UInt64 length;
-@property (readwrite, nonatomic, assign) UInt64 progress;
+@property (readwrite, nonatomic, assign) UInt64 contentLength;
 @property (readwrite, nonatomic, copy) NSString *uuid;
+@property (readwrite, nonatomic, assign) UInt64 progress;
+@property (readwrite, nonatomic, assign) CGFloat mSpeed;
+
 
 @property (readwrite, nonatomic, strong) DownloadState *mInit;
 @property (readwrite, nonatomic, strong) DownloadState *mStarted;
@@ -71,7 +73,6 @@ NSString* const DownloadStateDesc[] = {
 @property (readwrite, nonatomic, assign) BOOL hasDataChanged;
 @property (readwrite, nonatomic, assign) BOOL needVerify;
 @property (readwrite, nonatomic, assign) NSInteger retryCount;
-@property (readwrite, nonatomic, strong) NSMapTable *CACHE_TASKS_REF;
 
 /**
  *  私有的初始化方法
@@ -92,6 +93,13 @@ NSString* const DownloadStateDesc[] = {
 @end
 
 @implementation VMDownloadTask
++ (void)initialize
+{
+    if (self == [VMDownloadTask class]) {
+        CACHE_TASKS_REF = [NSMapTable  strongToWeakObjectsMapTable];
+    }
+}
+
 - (NSProgress *)downloadProgress
 {
     if (!_downloadProgress) {
@@ -101,13 +109,7 @@ NSString* const DownloadStateDesc[] = {
     return _downloadProgress;
 }
 
-- (NSMapTable *)CACHE_TASKS_REF
-{
-    if (!_CACHE_TASKS_REF) {
-        _CACHE_TASKS_REF = [NSMapTable  strongToWeakObjectsMapTable];
-    }
-    return _CACHE_TASKS_REF;
-}
+static NSMapTable *CACHE_TASKS_REF;
 
 - (BOOL)needVerify
 {
@@ -126,7 +128,7 @@ NSString* const DownloadStateDesc[] = {
     
     NSString *uuid = [resultSet stringForColumn:@"_id"];
     
-    VMDownloadTask *task = [self.CACHE_TASKS_REF objectForKey:uuid];
+    VMDownloadTask *task = [CACHE_TASKS_REF objectForKey:uuid];
     if (task != nil) {
         return task;
     }
@@ -141,11 +143,10 @@ NSString* const DownloadStateDesc[] = {
     task.sha1 = [resultSet stringForColumn:@"state"];
     task.mimetype = [resultSet stringForColumn:@"mimetype"];
     task.error = [resultSet stringForColumn:@"error"];
-    task.length = [resultSet intForColumn:@"length"];
+    task.contentLength = [resultSet intForColumn:@"length"];
     task.mCreate = [resultSet stringForColumn:@"_create"];
     task.mModifyDate = [resultSet stringForColumn:@"_modify"];
     task.netWorkMode = [resultSet intForColumn:@"netWorkMode"];
-    
     return task;
     
 }
@@ -183,7 +184,7 @@ NSString* const DownloadStateDesc[] = {
         /**
          将Task增加到弱引用缓存 中,优化为了从数据库中恢复时候的耗时.
          **/
-        [self.CACHE_TASKS_REF setObject:self forKey:uuid];
+        [CACHE_TASKS_REF setObject:self forKey:uuid];
     }
     return self;
 }
@@ -307,11 +308,11 @@ NSString* const DownloadStateDesc[] = {
             [dict setObject:@(self.mState) forKey:@"state"];
             [dict setObject:self.mMd5 forKey:@"md5"];
             [dict setObject:self.sha1?:@"" forKey:@"sha1"];
+            [dict setObject:[NSNumber numberWithLongLong:self.contentLength] forKey:@"length"];
             [dict setObject:@(self.netWorkMode) forKey:@"networkmode"];
             [dict setObject:[NSNumber numberWithLongLong:self.progress] forKey:@"progress"];
             [dict setObject:self.mCreate forKey:@"_create"];
             [dict setObject:self.mModifyDate forKey:@"_modify"];
-            [dict setObject:@(self.length) forKey:@"length"];
             [DownloaderDao createDownloadTaskWithDictionary:dict];
             
             [CPNotificationManager postNotificationWithName:kDownloadTaskInsert type:0 message:nil obj:self userInfo:nil];
@@ -321,11 +322,14 @@ NSString* const DownloadStateDesc[] = {
             self.mModifyDate = [NSDate dateWithFormatterString:nil];
             
             NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-            [dict setObject:self.title forKey:@"title"];
+            
             [dict setObject:@(self.mState) forKey:@"state"];
             [dict setObject:@(self.netWorkMode) forKey:@"networkmode"];
+            [dict setObject:[NSNumber numberWithLongLong:self.contentLength] forKey:@"length"];
             [dict setObject:[NSNumber numberWithLongLong:self.progress] forKey:@"progress"];
             [dict setObject:self.mModifyDate forKey:@"_modify"];
+//            [dict setValue:self.mimetype?:@"" forKey:@"mimetype"];
+//            [dict setValue:self.error?:@"" forKey:@"error"];
             [DownloaderDao updateDownloadTaskWithUUID:self.uuid dictionary:dict];
         }
         
@@ -342,56 +346,81 @@ NSString* const DownloadStateDesc[] = {
     
 }
 
+- (void)processWithHttpRequest:(NSURLRequest *)request response:(NSURLResponse *)response{
+    if([request.HTTPMethod isEqualToString:@"HEAD"]) {
+        
+    }
+}
+
 - (void)downloadRun
 {
-    NSLog(@"downloadRun -- %@",self.filePath);
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSError *createDir = nil;
-    BOOL isDir = NO;
-    NSString *filePath = [DocumenDir stringByAppendingPathComponent:self.filePath];
-    
-    if (![fileManager fileExistsAtPath:[filePath stringByDeletingLastPathComponent] isDirectory:&isDir]) {
-        BOOL createSuccess = [fileManager createDirectoryAtPath:[filePath stringByDeletingLastPathComponent] withIntermediateDirectories:NO attributes:nil error:&createDir];
-        NSAssert(createSuccess, @"filePath %@ 文件目录创建失败 error:%@",filePath,[createDir localizedDescription]);
+    if (self.contentLength < 0) {
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:self.url]];
+        request.HTTPMethod = @"HEAD";
+        [NSURLConnection sendAsynchronousRequest:request queue:nil completionHandler:^(NSURLResponse * _Nullable response, NSData * _Nullable data, NSError * _Nullable connectionError) {
+            [self processWithHttpRequest:request response:response];
+        }];
     }
     
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:self.url]];
+    if (self.progress == 0) {
+        NSString *range = [NSString stringWithFormat:@"bytes:%zd-", 0];
+        [request setValue:range forHTTPHeaderField:@"Range"];
+    }else if(self.progress < self.contentLength){
+        NSString *range = [NSString stringWithFormat:@"bytes:%lld-", self.progress];
+        [request setValue:range forHTTPHeaderField:@"Range"];
+    }else {
+        [self sendMessageType:MessageTypeEventTaskDone];
+    }
     
-    __block UInt64 lastDownloadProgress = 0;
-    __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
+//    NSFileManager *fileManager = [NSFileManager defaultManager];
+//    NSError *createDir = nil;
+//    BOOL isDir = NO;
+//    NSString *filePath = [DocumenDir stringByAppendingPathComponent:self.filePath];
+//    
+//    if (![fileManager fileExistsAtPath:[filePath stringByDeletingLastPathComponent] isDirectory:&isDir]) {
+//        BOOL createSuccess = [fileManager createDirectoryAtPath:[filePath stringByDeletingLastPathComponent] withIntermediateDirectories:NO attributes:nil error:&createDir];
+//        NSAssert(createSuccess, @"filePath %@ 文件目录创建失败 error:%@",filePath,[createDir localizedDescription]);
+//    }
     
-    VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
-    self.urlSessionDownloadTask = [downloadHttp downloadTaskWithRequest:request progress:^(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
-        self.downloadProgress.totalUnitCount = totalBytesExpectedToWrite;
-        self.downloadProgress.completedUnitCount = totalBytesWritten;
-        
-        if (totalBytesWritten < totalBytesExpectedToWrite) {
-            UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
-            
-            UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;
-            
-            UInt64 deltaProgress = totalBytesWritten -lastDownloadProgress;
-            
-            if (deltaTimeInterval >= 1000) {
-                NSLog(@"下载速度 %f m/s",(deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024));
-                [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:self.downloadProgress] delay:1.0];
-                lastDownloadProgress = totalBytesWritten;
-                lastTimeInterval = currentTimeInterval;
-            }
-        }else {
-            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self.downloadProgress]];
-        }
-        
-    } fileURL:^NSString *(NSURLResponse *response) {
-        return filePath;
-    } completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
-        if (error) {
-            [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:self.downloadProgress]];
-        }else {
-            [self sendMessageType:MessageTypeEventTaskDone];
-        }
-    }];
-    [self.urlSessionDownloadTask resume];
+    
+//    __block UInt64 lastDownloadProgress = 0;
+//    __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
+//    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
+//    
+//    VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
+//    self.urlSessionDownloadTask = [downloadHttp downloadTaskWithRequest:request progress:^(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
+//        self.downloadProgress.totalUnitCount = totalBytesExpectedToWrite;
+//        self.downloadProgress.completedUnitCount = totalBytesWritten;
+//        self.progress = totalBytesWritten;
+//        
+//        if (totalBytesWritten < totalBytesExpectedToWrite) {
+//            UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
+//            
+//            UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;
+//            
+//            UInt64 deltaProgress = totalBytesWritten -lastDownloadProgress;
+//            
+//            if (deltaTimeInterval >= 1000) {
+//                NSLog(@"下载速度 %f m/s",(deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024));
+//                [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:self.downloadProgress] delay:1.0];
+//                lastDownloadProgress = totalBytesWritten;
+//                lastTimeInterval = currentTimeInterval;
+//            }
+//        }else {
+//            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self.downloadProgress]];
+//        }
+//        
+//    } fileURL:^NSString *(NSURLResponse *response) {
+//        return filePath;
+//    } completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
+//        if (error) {
+//            [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:self.downloadProgress]];
+//        }else {
+//            [self sendMessageType:MessageTypeEventTaskDone];
+//        }
+//    }];
+//    [self.urlSessionDownloadTask resume];
 }
 
 

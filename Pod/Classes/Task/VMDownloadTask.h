@@ -126,7 +126,6 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
 @property (readonly, nonatomic, copy) NSString *sha1;
 @property (readonly, nonatomic, copy) NSString *error;
 @property (readonly, nonatomic, copy) NSString *uuid;
-@property (readonly, nonatomic, assign) UInt64 length;
 @property (readonly, nonatomic, assign) UInt64 progress;
 @property (readwrite, nonatomic, assign) MASK_NETWORK netWorkMode;
 @property (readwrite, nonatomic, assign) DownloadTaskState mState;
