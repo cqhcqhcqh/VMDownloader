@@ -79,12 +79,27 @@ typedef NS_ENUM(NSUInteger, Command) {
     [super viewDidLoad];
     
     [CPNotificationManager registerWithObserver:self name:kMessageTypeEventProgress selector:@selector(progressChange:)];
+    [CPNotificationManager registerWithObserver:self name:kDownloadStateChange selector:@selector(downloadStateChange:)];
+//    [CPNotificationManager registerWithObserver:self name:kDownloadTaskInsert selector:@selector(downloadTaskInsert:)];
+    
 }
-- (void)progressChange:(NSNotification *)note{
+
+- (void)progressChange:(NSNotification *)note
+{
     NSLog(@"obj:%@ userInfo:%@",[(CPNoteMessage *)note.object obj],note.userInfo);
     VMDownloadTask *task = [(CPNoteMessage *)note.object obj];
-    NSInteger row = [self.downloadTasks indexOfObject:task];
-    [self.downloadTableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:row inSection:0]] withRowAnimation:UITableViewRowAnimationAutomatic];
+    if ([self.downloadTasks containsObject:task]) {
+        NSInteger row = [self.downloadTasks indexOfObject:task];
+        [self.downloadTableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:row inSection:0]] withRowAnimation:UITableViewRowAnimationAutomatic];
+    }
+}
+
+- (void)downloadStateChange:(NSNotification *)note {
+    VMDownloadTask *task = [(CPNoteMessage *)note.object obj];
+    if ([self.downloadTasks containsObject:task]) {
+        NSInteger row = [self.downloadTasks indexOfObject:task];
+        [self.downloadTableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:row inSection:0]] withRowAnimation:UITableViewRowAnimationAutomatic];
+    }
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -116,11 +131,7 @@ typedef NS_ENUM(NSUInteger, Command) {
         VMDownloadTaskTableViewCell *downloadCell = (VMDownloadTaskTableViewCell*)cell;
         
         VMDownloadTask *task = self.downloadTasks[indexPath.row];
-        downloadCell.titleView.text = task.title;
-        downloadCell.totalDownloadLabel.text = [NSString stringWithFormat:@"%.2fMB",task.downloadProgress.totalUnitCount/(1024*1024.0)];
-        downloadCell.currentDownloadLabel.text = [NSString stringWithFormat:@"%.2fMB",task.downloadProgress.completedUnitCount/(1024*1024.0)];
-        downloadCell.progressView.progress = task.downloadProgress.fractionCompleted;
-        downloadCell.percentLabel.text = [NSString stringWithFormat:@"%.2f%%",task.downloadProgress.fractionCompleted * 100];
+        downloadCell.task = task;
     }
     return cell;
 }
@@ -140,10 +151,9 @@ typedef NS_ENUM(NSUInteger, Command) {
         request.title = resource.title;
         request.MD5Value = resource.md5;
         
-        VMDownloadTask *tasks = [self.manager enqueueWithRequest:request];
-        [self.downloadTasks addObject:tasks];
+        VMDownloadTask *task = [self.manager enqueueWithRequest:request];
+        [self.downloadTasks addObject:task];
         [self.downloadTableView reloadData];
-        
     }else if (tableView == self.downloadTableView) {
         VMDownloadTask *task = self.downloadTasks[indexPath.row];
         if (task.mState == DownloadTaskStateOngoing) {

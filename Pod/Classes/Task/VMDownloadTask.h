@@ -114,7 +114,7 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
 @class VMDownloadRequest;
 
 @interface VMDownloadTask : StateMachine
-@property (readwrite, nonatomic, strong) NSProgress *downloadProgress;
+//@property (readwrite, nonatomic, strong) NSProgress *downloadProgress;
 #pragma mark - 需要往数据库中存入的属性
 @property (readonly, nonatomic, copy) NSString *title;
 @property (readonly, nonatomic, copy) NSString *url;
@@ -126,9 +126,16 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
 @property (readonly, nonatomic, copy) NSString *sha1;
 @property (readonly, nonatomic, copy) NSString *error;
 @property (readonly, nonatomic, copy) NSString *uuid;
-@property (readonly, nonatomic, assign) UInt64 progress;
+@property (readonly, nonatomic, assign) UInt64 mProgress;
+@property (readonly, nonatomic, assign) UInt64 contentLength;
+
 @property (readwrite, nonatomic, assign) MASK_NETWORK netWorkMode;
 @property (readwrite, nonatomic, assign) DownloadTaskState mState;
+#pragma mark -
+@property (readwrite, nonatomic, assign) CGFloat mSpeed;
+
+#pragma mark - 内部状态
+@property (readwrite, nonatomic, assign) DownloadTaskState mLastState;
 
 @property (readonly, nonatomic, assign) BOOL needVerify;
 #pragma mark - 任务中的状态

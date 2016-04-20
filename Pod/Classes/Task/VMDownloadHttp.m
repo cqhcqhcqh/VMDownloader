@@ -92,7 +92,7 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
     self.totalLength = response.expectedContentLength + [self getFileSizeWithPath:self.path];
     
     // 打开输出流
-    self.outputStream = [NSOutputStream outputStreamToFileAtPath:self.path append:YES];
+    self.outputStream = [NSOutputStream outputStreamToFileAtPath:self.path append:NO];
     [self.outputStream open];
 }
 
@@ -115,7 +115,7 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
 // 请求完毕时调用, 如果error有值, 代表请求错误
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
-    NSLog(@"didCompleteWithError");
+    NSLog(@"didCompleteWithError %@",error);
     
     // 关闭输出流
     [self.outputStream close];

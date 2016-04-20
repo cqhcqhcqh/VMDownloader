@@ -9,6 +9,9 @@
 #import <Foundation/Foundation.h>
 FOUNDATION_EXTERN NSString *const kMessageTypeEventProgress;
 FOUNDATION_EXTERN NSString *const kDownloadTaskInsert;
+FOUNDATION_EXTERN NSString *const kDownloadStateChange;
+FOUNDATION_EXPORT NSString *const kDownloadStateOldValue;
+FOUNDATION_EXPORT NSString *const kDownloadStateNewValue;
 
 @interface CPNotificationManager : NSObject
 + (void)postNotificationWithName:(NSString *)aName type:(int)type;

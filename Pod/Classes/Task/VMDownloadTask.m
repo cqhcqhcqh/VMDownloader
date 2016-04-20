@@ -45,8 +45,7 @@ NSString* const DownloadStateDesc[] = {
 @property (readwrite, nonatomic, copy) NSString *error;
 @property (readwrite, nonatomic, assign) UInt64 contentLength;
 @property (readwrite, nonatomic, copy) NSString *uuid;
-@property (readwrite, nonatomic, assign) UInt64 progress;
-@property (readwrite, nonatomic, assign) CGFloat mSpeed;
+@property (readwrite, nonatomic, assign) UInt64 mProgress;
 
 
 @property (readwrite, nonatomic, strong) DownloadState *mInit;
@@ -90,6 +89,16 @@ NSString* const DownloadStateDesc[] = {
  */
 - (void)downloadRun;
 
+/**
+ *  数据库恢复Task方法,并且主动[task start]
+ *
+ *  @param thread    Task.handler(Queue).operation isFinished 调用的thread
+ *  @param key       _manager.downloadConfig.identifier
+ *  @param resultSet 数据库游标
+ *
+ *  @return Task
+ */
+- (instancetype)initWithRunloopThread:(NSThread *)thread key:(NSString *)key resultSet:(FMResultSet *)resultSet;
 @end
 
 @implementation VMDownloadTask
@@ -100,14 +109,14 @@ NSString* const DownloadStateDesc[] = {
     }
 }
 
-- (NSProgress *)downloadProgress
-{
-    if (!_downloadProgress) {
-        _downloadProgress = [[NSProgress alloc] initWithParent:nil userInfo:nil];
-        _downloadProgress.totalUnitCount = NSURLSessionTransferSizeUnknown;
-    }
-    return _downloadProgress;
-}
+//- (NSProgress *)downloadProgress
+//{
+//    if (!_downloadProgress) {
+//        _downloadProgress = [[NSProgress alloc] initWithParent:nil userInfo:nil];
+//        _downloadProgress.totalUnitCount = NSURLSessionTransferSizeUnknown;
+//    }
+//    return _downloadProgress;
+//}
 
 static NSMapTable *CACHE_TASKS_REF;
 
@@ -119,6 +128,7 @@ static NSMapTable *CACHE_TASKS_REF;
 + (instancetype)recoveryDownloadTaskWithRunloopThread:(NSThread *)thread key:(NSString *)key resultSet:(FMResultSet *)resultSet{
     return [[self alloc] initWithRunloopThread:thread key:key resultSet:resultSet];
 }
+
 
 - (instancetype)initWithRunloopThread:(NSThread *)thread key:(NSString *)key resultSet:(FMResultSet *)resultSet {
     NSAssert(resultSet != NULL, @"resultSet is null");
@@ -140,13 +150,17 @@ static NSMapTable *CACHE_TASKS_REF;
     task.url = [resultSet stringForColumn:@"url"];
     task.mMd5 = [resultSet stringForColumn:@"md5"];
     task.mState = [resultSet intForColumn:@"state"];
+    task.mLastState = task.mState;
     task.sha1 = [resultSet stringForColumn:@"state"];
     task.mimetype = [resultSet stringForColumn:@"mimetype"];
     task.error = [resultSet stringForColumn:@"error"];
-    task.contentLength = [resultSet intForColumn:@"length"];
+    task.contentLength = [resultSet longLongIntForColumn:@"length"];
+    task.mProgress = [resultSet longLongIntForColumn:@"progress"];
     task.mCreate = [resultSet stringForColumn:@"_create"];
     task.mModifyDate = [resultSet stringForColumn:@"_modify"];
     task.netWorkMode = [resultSet intForColumn:@"netWorkMode"];
+    
+    [task start];
     return task;
     
 }
@@ -156,6 +170,7 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     return [[self alloc] initWithRunloopThread:thread downloadRequest:request key:key];
 }
+
 
 
 - (instancetype)initWithRunloopThread:(NSThread *)thread downloadRequest:(VMDownloadRequest *)request key:(NSString *)key
@@ -174,6 +189,7 @@ static NSMapTable *CACHE_TASKS_REF;
     task.netWorkMode = MASK_NETWORK_WIFI;
     return task;
 }
+
 
 - (instancetype)initWithRunloopThread:(NSThread *)thread uuid:(NSString *)uuid downloadManager:(VMDownloaderManager *)manager {
     if (self == [super init]) {
@@ -249,20 +265,55 @@ static NSMapTable *CACHE_TASKS_REF;
     [self addState:_mSuccess parentState:_mDone];
     [self addState:_mFailure parentState:_mDone];
     
-    for (NSString *key in self.smHandler.mapStateInfo.allKeys) {
-        StateInfo *stateInfo = self.smHandler.mapStateInfo[key];
-        //        NSLog(@"key %@ state:%@ parentState:%@",key,stateInfo.state,stateInfo.parentStateInfo.state);
-    }
+//    for (NSString *key in self.smHandler.mapStateInfo.allKeys) {
+//        StateInfo *stateInfo = self.smHandler.mapStateInfo[key];
+//        //        NSLog(@"key %@ state:%@ parentState:%@",key,stateInfo.state,stateInfo.parentStateInfo.state);
+//    }
     if ([self isCurrentStateLevel:DownloadTaskLevelStarted|DownloadTaskStateInit]) {
         [self.smHandler setInitialState:_mStarted];
     }else {
-        [self.smHandler setInitialState:_mInit];
+        [self.smHandler setInitialState:[self getHSMState]];
     }
     [super start];
 }
 
-- (void)delete{
-    
+- (State *)getHSMState {
+    switch (self.mState) {
+        case DownloadTaskStateRetry:
+            return _mRetry;
+        
+        case DownloadTaskStateOngoing:
+            return _mOngoing;
+           
+        case DownloadTaskStateWaiting:
+            return _mWaiting;
+            
+        case DownloadTaskStateIOError:
+            return _mIOError;
+            
+        case DownloadTaskStatePaused:
+            return _mPaused;
+            
+        case DownloadTaskStateVerifying:
+            return _mVerifying;
+            
+        case DownloadTaskStateSuccess:
+            return _mSuccess;
+            
+        case DownloadTaskStateFailure:
+            return _mFailure;
+
+        default:
+            return _mInit;
+    }
+}
+
+/**
+ *  状态机退出的时候调用
+ *  Init状态Exit的时候会主动调用
+ */
+- (void)delete
+{
     //根据uuid从数据库中删除对应的Task
     [DownloaderDao deleteDownloadTaskWithUUID:self.uuid];
     //发送Notification
@@ -285,7 +336,11 @@ static NSMapTable *CACHE_TASKS_REF;
 - (void)saveTask {
     
     @synchronized (self) {
-        _hasDataChanged = YES;
+        if (self.mState != self.mLastState) {
+            [CPNotificationManager postNotificationWithName:kDownloadStateChange type:0 message:nil obj:self userInfo:@{kDownloadStateOldValue:@(self.mLastState),kDownloadStateNewValue:@(self.mState)}];
+            self.mLastState = self.mState;
+            _hasDataChanged = YES;
+        }
     }
 }
 
@@ -310,7 +365,7 @@ static NSMapTable *CACHE_TASKS_REF;
             [dict setObject:self.sha1?:@"" forKey:@"sha1"];
             [dict setObject:[NSNumber numberWithLongLong:self.contentLength] forKey:@"length"];
             [dict setObject:@(self.netWorkMode) forKey:@"networkmode"];
-            [dict setObject:[NSNumber numberWithLongLong:self.progress] forKey:@"progress"];
+            [dict setObject:[NSNumber numberWithLongLong:self.mProgress] forKey:@"progress"];
             [dict setObject:self.mCreate forKey:@"_create"];
             [dict setObject:self.mModifyDate forKey:@"_modify"];
             [DownloaderDao createDownloadTaskWithDictionary:dict];
@@ -326,10 +381,10 @@ static NSMapTable *CACHE_TASKS_REF;
             [dict setObject:@(self.mState) forKey:@"state"];
             [dict setObject:@(self.netWorkMode) forKey:@"networkmode"];
             [dict setObject:[NSNumber numberWithLongLong:self.contentLength] forKey:@"length"];
-            [dict setObject:[NSNumber numberWithLongLong:self.progress] forKey:@"progress"];
+            [dict setObject:[NSNumber numberWithLongLong:self.mProgress] forKey:@"progress"];
             [dict setObject:self.mModifyDate forKey:@"_modify"];
-//            [dict setValue:self.mimetype?:@"" forKey:@"mimetype"];
-//            [dict setValue:self.error?:@"" forKey:@"error"];
+            //            [dict setValue:self.mimetype?:@"" forKey:@"mimetype"];
+            //            [dict setValue:self.error?:@"" forKey:@"error"];
             [DownloaderDao updateDownloadTaskWithUUID:self.uuid dictionary:dict];
         }
         
@@ -346,81 +401,61 @@ static NSMapTable *CACHE_TASKS_REF;
     
 }
 
-- (void)processWithHttpRequest:(NSURLRequest *)request response:(NSURLResponse *)response{
-    if([request.HTTPMethod isEqualToString:@"HEAD"]) {
-        
-    }
-}
-
 - (void)downloadRun
 {
-    if (self.contentLength < 0) {
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:self.url]];
-        request.HTTPMethod = @"HEAD";
-        [NSURLConnection sendAsynchronousRequest:request queue:nil completionHandler:^(NSURLResponse * _Nullable response, NSData * _Nullable data, NSError * _Nullable connectionError) {
-            [self processWithHttpRequest:request response:response];
-        }];
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSError *createDir = nil;
+    BOOL isDir = NO;
+    NSString *filePath = [DocumenDir stringByAppendingPathComponent:self.filePath];
+    
+    if (![fileManager fileExistsAtPath:[filePath stringByDeletingLastPathComponent] isDirectory:&isDir]) {
+        BOOL createSuccess = [fileManager createDirectoryAtPath:[filePath stringByDeletingLastPathComponent] withIntermediateDirectories:NO attributes:nil error:&createDir];
+        NSAssert(createSuccess, @"filePath %@ 文件目录创建失败 error:%@",filePath,[createDir localizedDescription]);
     }
     
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:self.url]];
-    if (self.progress == 0) {
-        NSString *range = [NSString stringWithFormat:@"bytes:%zd-", 0];
-        [request setValue:range forHTTPHeaderField:@"Range"];
-    }else if(self.progress < self.contentLength){
-        NSString *range = [NSString stringWithFormat:@"bytes:%lld-", self.progress];
-        [request setValue:range forHTTPHeaderField:@"Range"];
-    }else {
-        [self sendMessageType:MessageTypeEventTaskDone];
-    }
     
-//    NSFileManager *fileManager = [NSFileManager defaultManager];
-//    NSError *createDir = nil;
-//    BOOL isDir = NO;
-//    NSString *filePath = [DocumenDir stringByAppendingPathComponent:self.filePath];
-//    
-//    if (![fileManager fileExistsAtPath:[filePath stringByDeletingLastPathComponent] isDirectory:&isDir]) {
-//        BOOL createSuccess = [fileManager createDirectoryAtPath:[filePath stringByDeletingLastPathComponent] withIntermediateDirectories:NO attributes:nil error:&createDir];
-//        NSAssert(createSuccess, @"filePath %@ 文件目录创建失败 error:%@",filePath,[createDir localizedDescription]);
-//    }
+    __block UInt64 lastDownloadProgress = 0;
+    __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
     
     
-//    __block UInt64 lastDownloadProgress = 0;
-//    __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
-//    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
-//    
-//    VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
-//    self.urlSessionDownloadTask = [downloadHttp downloadTaskWithRequest:request progress:^(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
-//        self.downloadProgress.totalUnitCount = totalBytesExpectedToWrite;
-//        self.downloadProgress.completedUnitCount = totalBytesWritten;
-//        self.progress = totalBytesWritten;
-//        
-//        if (totalBytesWritten < totalBytesExpectedToWrite) {
-//            UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
-//            
-//            UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;
-//            
-//            UInt64 deltaProgress = totalBytesWritten -lastDownloadProgress;
-//            
-//            if (deltaTimeInterval >= 1000) {
-//                NSLog(@"下载速度 %f m/s",(deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024));
-//                [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:self.downloadProgress] delay:1.0];
-//                lastDownloadProgress = totalBytesWritten;
-//                lastTimeInterval = currentTimeInterval;
-//            }
-//        }else {
-//            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self.downloadProgress]];
-//        }
-//        
-//    } fileURL:^NSString *(NSURLResponse *response) {
-//        return filePath;
-//    } completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
-//        if (error) {
-//            [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:self.downloadProgress]];
-//        }else {
-//            [self sendMessageType:MessageTypeEventTaskDone];
-//        }
-//    }];
-//    [self.urlSessionDownloadTask resume];
+    VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
+    self.urlSessionDownloadTask = [downloadHttp downloadTaskWithRequest:request progress:^(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
+
+        self.mProgress = totalBytesWritten;
+        self.contentLength = totalBytesExpectedToWrite;
+        
+        if (totalBytesWritten < totalBytesExpectedToWrite) {
+            UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
+            
+            UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;
+            
+            UInt64 deltaProgress = totalBytesWritten -lastDownloadProgress;
+            
+            if (deltaTimeInterval >= 1000) {
+                
+                 self.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024);
+                NSLog(@"下载速度 %f m/s",self.mSpeed);
+                
+                [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.contentLength),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}] delay:1.0];
+                lastDownloadProgress = totalBytesWritten;
+                lastTimeInterval = currentTimeInterval;
+            }
+        }else {
+            
+            [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.contentLength),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}] delay:1.0];
+        }
+        
+    } fileURL:^NSString *(NSURLResponse *response) {
+        return filePath;
+    } completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
+        if (error) {
+            [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.contentLength),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}] delay:1.0];
+        }else {
+            [self sendMessageType:MessageTypeEventTaskDone];
+        }
+    }];
+    [self.urlSessionDownloadTask resume];
 }
 
 
@@ -505,7 +540,8 @@ static NSMapTable *CACHE_TASKS_REF;
 - (void)enter
 {
     [super enter];
-    
+    NSLog(@"====>%p  %@",self.tasks,self.tasks);
+    CPStateMechineLog(@"进入到Downloading的task的数量%zd",self.tasks.count);
 }
 
 - (void)exit
@@ -583,7 +619,7 @@ static NSMapTable *CACHE_TASKS_REF;
             [self.downloadTask removeMessageWithType:MessageTypeEventProgress];
         case MessageTypeEventProgress:
             //notify 下载进度
-            [CPNotificationManager postNotificationWithName:kMessageTypeEventProgress type:0 message:nil obj:self.downloadTask userInfo:@{@"progress":message.obj}];
+            [CPNotificationManager postNotificationWithName:kMessageTypeEventProgress type:0 message:nil obj:self.downloadTask userInfo:@{@"dynamicNum":message.obj}];
             return YES;
             
         default:
@@ -596,9 +632,7 @@ static NSMapTable *CACHE_TASKS_REF;
 
 @implementation Retry
 //缓存Retry状态
-- (instancetype)initWithDownloadTask:(VMDownloadTask *)downloadTask{
-    return [super initWithDownloadTask:downloadTask];
-}
+
 - (void)enter
 {
     [super enter];
@@ -690,7 +724,8 @@ static NSMapTable *CACHE_TASKS_REF;
                 [self.downloadTask transitionToState:self.downloadTask.mRetry];
             }
         }
-        
+    }else {
+        CPStateMechineLog(@"下载数量>=3");
     }
 }
 
@@ -741,7 +776,6 @@ static NSMapTable *CACHE_TASKS_REF;
             [self sendMessageType:MessageTypeEventVerifyFail];
         }
     }else {
-        //        [self sendMessageType:MessageTypeEventVerifyPass];
         [self.downloadTask transitionToState:self.downloadTask.mSuccess];
     }
 }
@@ -855,6 +889,7 @@ static NSMapTable *CACHE_TASKS_REF;
 @property (readwrite, nonatomic, strong) NSMutableArray *tasks;
 @end
 @implementation DownloadState
+
 - (void)enter
 {
     [super enter];
@@ -906,7 +941,7 @@ static NSMutableDictionary *TASKS;
         
         //需要缓存的downloadTask
         if (!isNotCacheTask) {
-            self.tasks = [[[self.downloadTask downloaderManager] getTasksInState:[self class]] mutableCopy];
+            _tasks = [[self.downloadTask downloaderManager] getTasksInState:[self class]];
         }
     }
     return self;

@@ -51,7 +51,7 @@ static FMDatabase *database;
 + (void)updateDownloadTaskWithUUID:(NSString *)uuid dictionary:(NSDictionary *)dictionary{
     BOOL updateSuccess =[database executeUpdate:@"UPDATE t_downloads SET mimetype = ?, state = ?, error = ?, length = ?, networkmode = ?, progress = ?, _modify = ?  WHERE _id = ?;",dictionary[@"mimetype"],dictionary[@"state"],dictionary[@"error"],dictionary[@"length"],dictionary[@"networkmode"],dictionary[@"progress"],dictionary[@"_modify"],uuid];
     NSNumber * state = dictionary[@"state"];
-    DatabaseLog(@"更新下载任务 title:%@ uuid:%@ state:%@ %@",dictionary[@"title"],uuid,DownloadStateDesc[state.intValue],updateSuccess?@"成功":@"失败");
+    DatabaseLog(@"更新下载任务 uuid:%@ state:%@ %@",uuid,DownloadStateDesc[state.intValue],updateSuccess?@"成功":@"失败");
 }
 
 /**
@@ -73,7 +73,7 @@ static FMDatabase *database;
     NSMutableArray *array = [NSMutableArray array];
     while ([resultSet next]) {
         VMDownloadTask *task = [VMDownloadTask recoveryDownloadTaskWithRunloopThread:thread key:key resultSet:resultSet];
-        DatabaseLog(@"回复中断的下载任务 state %@ title:%@ uuid:%@",DownloadStateDesc[task.mState],task.title,task.uuid);
+        DatabaseLog(@"恢复中断的下载任务 state %@ title:%@ uuid:%@",DownloadStateDesc[task.mState],task.title,task.uuid);
         [array addObject:task];
     }
     return array;
@@ -82,11 +82,14 @@ static FMDatabase *database;
 + (NSArray *)recoverTasksWithThread:(NSThread *)thread key:(NSString *)key miniState:(int)miniState {
     FMResultSet *resultSet = [database executeQuery:@"SELECT * from t_downloads where state > ?",@(miniState)];
     NSMutableArray *array = [NSMutableArray array];
+    NSString *log = [NSString stringWithFormat:@"恢复数据库中的State>0的所有Task:[\n"];
+    
     while ([resultSet next]) {
         VMDownloadTask *task = [VMDownloadTask recoveryDownloadTaskWithRunloopThread:thread key:key resultSet:resultSet];
-        DatabaseLog(@"恢复 >%@状态的任务 state %@ title:%@ uuid:%@",DownloadStateDesc[miniState],DownloadStateDesc[task.mState],task.title,task.uuid);
+        log = [log stringByAppendingFormat:@"%@状态的任务 state %@ title:%@ uuid:%@,\n",DownloadStateDesc[task.mState],DownloadStateDesc[task.mState],task.title,task.uuid];
         [array addObject:task];
     }
+    DatabaseLog(@"%@]",log);
     return array;
 }
 

@@ -10,6 +10,7 @@
 
 @class StateMachine,CPMessage;
 @interface State : NSObject <NSCopying>
+
 @property(nonatomic,weak) StateMachine *stateMachine;
 
 - (instancetype)initWithStateMachine:(StateMachine *)stateMachine;

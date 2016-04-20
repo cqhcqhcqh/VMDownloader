@@ -7,18 +7,52 @@
 //
 
 #import "VMDownloadTaskTableViewCell.h"
-
+@import Downloader;
 @implementation VMDownloadTaskTableViewCell
 
-- (void)awakeFromNib {
-    [super awakeFromNib];
-    self.stateLabel.hidden = YES;
-}
 
-- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
-    [super setSelected:selected animated:animated];
-
-    // Configure the view for the selected state
-}
+- (void)setTask:(VMDownloadTask *)task
+{
+    _task = task;
+    
+    self.titleView.text = task.title;
+    
+    self.totalDownloadLabel.text = [NSString stringWithFormat:@"%.2fMB",task.contentLength/(1024*1024.0)];
+    self.currentDownloadLabel.text = [NSString stringWithFormat:@"%.2fMB",task.mProgress/(1024*1024.0)];
+    if (task.contentLength != 0) {
+        self.progressView.progress = task.mProgress*1.0 / task.contentLength;
+    }else {
+        self.progressView.progress = 0.0f;
+    }
+    self.percentLabel.text = [NSString stringWithFormat:@"%.2f%%",self.progressView.progress * 100];
+    self.speedLabel.text = [NSString stringWithFormat:@"%.2fMB/s",task.mSpeed];
+    
+    if (task.mState == DownloadTaskStateOngoing) {
+        self.speedView.hidden = NO;
+        self.stateLabel.hidden = YES;
+    }else {
+        self.speedView.hidden = YES;
+        self.stateLabel.hidden = NO;
+    }
+    
+    switch (task.mState) {
+        case DownloadTaskStatePaused:
+            self.stateLabel.text = @"暂停";
+            break;
+        case DownloadTaskStateRetry:
+            self.stateLabel.text = @"重试";
+            break;
+        case DownloadTaskStateSuccess:
+            self.stateLabel.text = @"下载成功";
+            break;
+        case DownloadTaskStateFailure:
+            self.stateLabel.text = @"下载失败";
+            break;
+        case DownloadTaskStateWaiting:
+            self.stateLabel.text = @"等待中";
+            break;
+        default:
+            break;
+    }}
 
 @end

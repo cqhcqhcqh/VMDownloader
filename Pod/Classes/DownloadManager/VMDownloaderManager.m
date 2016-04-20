@@ -219,17 +219,15 @@ static NSMutableDictionary *MANAGERS;
 }
 
 
-
-
 #pragma mark -- 获取某个状态下对应的Tasks
 - (NSArray *)getTasksInState:(Class)stateClass
 {
     NSString *className = NSStringFromClass(stateClass);
     NSString *STATE_KEY = [NSString stringWithFormat:@"%@-%@",className,self.downloadConfig.identifier];
     
-    NSArray *states = [DownloadState.TASKS objectForKey:STATE_KEY];
+    id states = [DownloadState.TASKS objectForKey:STATE_KEY];
     if(states == nil) {
-        states = [NSArray array];
+        states = [NSMutableArray array];
         [DownloadState.TASKS setObject:states forKey:STATE_KEY];
     }
     return states;
