@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = "Downloader"
-  s.version          = "0.0.2"
+  s.version          = "0.0.3"
   s.summary          = "这是我们的第一个支持本地私有库<Downloader>,请大家多多关照,多给建议和支持"
 
 # This description is used to generate tags and improve search results.
