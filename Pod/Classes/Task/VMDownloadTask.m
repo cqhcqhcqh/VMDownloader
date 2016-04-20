@@ -446,7 +446,7 @@ static NSMapTable *CACHE_TASKS_REF;
             if (deltaTimeInterval >= 1000) {
                 
                 self.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024);
-                NSLog(@"mProgress:%lld  contentLength:%lld 下载速度 %f m/s",self.mProgress,self.contentLength,self.mSpeed);
+//                NSLog(@"mProgress:%lld  contentLength:%lld 下载速度 %f m/s",self.mProgress,self.contentLength,self.mSpeed);
                 
                 [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.mProgress),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}] delay:1.0];
                 lastDownloadProgress = totalBytesWritten;

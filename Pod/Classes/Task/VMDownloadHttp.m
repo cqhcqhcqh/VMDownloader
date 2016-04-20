@@ -84,7 +84,6 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
 // 接收到服务器的响应时调用
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveResponse:(NSURLResponse *)response completionHandler:(void (^)(NSURLSessionResponseDisposition))completionHandler
 {
-    NSLog(@"didReceiveResponse");
     // 告诉系统需要接收数据
     if (completionHandler) {
         completionHandler(NSURLSessionResponseAllow);
@@ -117,8 +116,6 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
 // 请求完毕时调用, 如果error有值, 代表请求错误
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
-    NSLog(@"didCompleteWithError %@",error);
-    
     // 关闭输出流
     [self.outputStream close];
     

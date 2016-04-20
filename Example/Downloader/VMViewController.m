@@ -163,7 +163,7 @@ typedef NS_ENUM(NSUInteger, Command) {
         [self.downloadTableView reloadData];
     }else if (tableView == self.downloadTableView) {
         VMDownloadTask *task = self.downloadTasks[indexPath.row];
-        if (task.mState == DownloadTaskStateOngoing) {
+        if (task.mState == DownloadTaskStateOngoing || task.mState == DownloadTaskStateWaiting) {
             [task pauseTask];
         }else if (task.mState == DownloadTaskStatePaused || task.mState == DownloadTaskStateRetry) {
             [task resumeTask];

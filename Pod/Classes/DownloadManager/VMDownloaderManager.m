@@ -70,7 +70,7 @@ static NSMutableDictionary *MANAGERS;
 {
     if (self == [VMDownloaderManager class]) {
         MANAGERS = [NSMutableDictionary dictionary];
-//        [CPLoggerManager openLogger:YES];
+        [CPLoggerManager openLogger:YES];
     }
 }
 
