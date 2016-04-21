@@ -7,7 +7,7 @@
 //
 
 #import "VMDownloadHttp.h"
-
+#define DownloadTimeOutInterval 15
 typedef NSURL * (^VMURLSessionDownloadTaskDidFinishDownloadingBlock)(NSURLSession *session, NSURLSessionDownloadTask *downloadTask, NSURL *location);
 typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSError *error);
 
@@ -67,7 +67,7 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
         // 设置请求头
         NSString *range = [NSString stringWithFormat:@"bytes=%lld-", [self getFileSizeWithPath:self.path]];
         [self.request setValue:range forHTTPHeaderField:@"Range"];
-        
+        [self.request setTimeoutInterval:DownloadTimeOutInterval];
         _task = [self.session dataTaskWithRequest:self.request];
     }
     return _task;

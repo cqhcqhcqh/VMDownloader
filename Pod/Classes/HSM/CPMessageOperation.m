@@ -22,6 +22,7 @@ NSString* const MessageMapping [] = {
     [MessageTypeActionStart] = @"MessageTypeActionStart",
     [MessageTypeActionPaused] = @"MessageTypeActionPaused",
     [MessageTypeActionDelete] = @"MessageTypeActionDelete",
+    [MessageTypeActionQuit] = @"MessageTypeActionQuit",
 };
 @interface CPMessageOperation ()
 /*

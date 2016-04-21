@@ -10,6 +10,7 @@
 #import "CPLoggerManager.h"
 #import "State.h"
 #import "CPMessageOperation.h"
+#import "StateMachine.h"
 
 @implementation StateInfo
 - (instancetype)initWithState:(State *)state {
@@ -128,6 +129,7 @@
     }
     [self performTransitions:msgProcessedState message:message];
     CPStateMechineLog(@">>>>>>>>>>>>>>>>>>任务%@------------结束------------\n\n",MessageMapping[message.type]);
+    
     if ([self.handlerDelegate respondsToSelector:@selector(smHandlerProcessFinalMessage:)]) {
         [self.handlerDelegate smHandlerProcessFinalMessage:message];
     }
@@ -258,13 +260,17 @@
 - (State *)processMsg:(CPMessage *)msg {
     StateInfo *curStateInfo = self.stateStack[_stateStackTopIndex];
     CPStateMechineLog(@">>>>curState:%@------EVENT:---%@",[[curStateInfo state] getName],MessageMapping[msg.type]);
-    while (![curStateInfo.state processMessage:msg]) {
-        if (curStateInfo.parentStateInfo != nil) {
-            curStateInfo = curStateInfo.parentStateInfo;
-            CPStateMechineLog(@">>>>>>curState's ParentState:%@------EVENT:---%@",[[curStateInfo state] getName],MessageMapping[msg.type]);
-        }else {
-            [self unhandledMessage:msg];
-            break;
+    if ([self isQuit:msg]) {
+        [self transitionToState:self.handlerDelegate.quittingState];
+    }else {
+        while (![curStateInfo.state processMessage:msg]) {
+            if (curStateInfo.parentStateInfo != nil) {
+                curStateInfo = curStateInfo.parentStateInfo;
+                CPStateMechineLog(@">>>>>>curState's ParentState:%@------EVENT:---%@",[[curStateInfo state] getName],MessageMapping[msg.type]);
+            }else {
+                [self unhandledMessage:msg];
+                break;
+            }
         }
     }
     return curStateInfo.state;
@@ -350,5 +356,20 @@
 {
     CPStateMechineLog(@"状态机的目的状态切换成 %@",[state getName]);
     self.destState = state;
+}
+
+/**
+ *  退出状态机
+ */
+- (void)quitNow {
+    CPMessage *msg = [CPMessage messageWithType:MessageTypeActionQuit obj:self];
+    [self addOperationAtFrontOfQueue:msg];
+}
+
+- (BOOL)isQuit:(CPMessage *)msg{
+    if(msg.type == MessageTypeActionQuit && msg.obj == self) {
+        return YES;
+    }
+    return NO;
 }
 @end

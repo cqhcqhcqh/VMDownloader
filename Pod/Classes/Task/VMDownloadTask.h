@@ -208,7 +208,7 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
 /**
  *  删除任务
  */
-- (void)deleteTask;
+- (void)deleteTaskIncludeFile:(BOOL)includeFile;
 
 /**
  *  开始任务
@@ -227,6 +227,13 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
  *  @return 是否为此层级
  */
 - (BOOL)isCurrentStateLevel:(DownloadTaskLevel)level;
+
+/**
+ *  文件所在文件夹
+ *
+ *  @return 文件夹路径
+ */
+- (NSString *)fileDir;
 @end
 
 @interface Init : DownloadState

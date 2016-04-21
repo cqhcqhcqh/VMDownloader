@@ -7,11 +7,8 @@
 //
 
 #import "CPMessagesQueue.h"
+@class StateMachine;
 
-@protocol SmHandlerDelegate <NSObject>
-@required
-- (void)smHandlerProcessFinalMessage:(CPMessage *)msg;
-@end
 @class State;
 @interface StateInfo : NSObject
 @property (readwrite, nonatomic, strong) State *state;
@@ -26,9 +23,12 @@
 @property (readwrite, nonatomic, strong) NSMutableArray *deferredArray;
 @property (readwrite, nonatomic, strong) State *initialState;
 @property (readonly, nonatomic, strong) NSMutableDictionary *mapStateInfo;
-@property (nonatomic, weak) id<SmHandlerDelegate> handlerDelegate;
+@property (nonatomic, weak) StateMachine* handlerDelegate;
 
 - (void)completeConstruction;
 - (void)transitionToState:(State *)state;
 - (StateInfo *)addState:(State *)state parentState:(State *)parentState;
+- (void)quitNow;
+
+- (BOOL)isQuit:(CPMessage *)msg;
 @end

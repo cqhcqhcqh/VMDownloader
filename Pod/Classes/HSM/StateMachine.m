@@ -16,7 +16,7 @@
 
 @property(nonatomic,strong) State *currentState;
 @property (readwrite, nonatomic, strong) SmHandler *smHandler;
-
+@property (readwrite, nonatomic, strong) QuittingState *quittingState;
 @end
 
 @implementation StateMachine
@@ -33,12 +33,27 @@
 {
     return [[self alloc] init];
 }
+- (void)quitNow
+{
+    [self.smHandler quitNow];
+}
+
+- (BOOL)isQuit:(CPMessage *)msg {
+    
+    if (self.smHandler) {
+        return [self.smHandler isQuit:msg];
+    }else {
+        return msg.type = MessageTypeActionQuit;
+    }
+}
 
 - (instancetype)init
 {
     self = [super init];
     if (self) {
+        _quittingState = [[QuittingState alloc] initWithStateMachine:self];
         _smHandler = [[SmHandler alloc] init];
+        [_smHandler addState:_quittingState parentState:nil];
         _smHandler.handlerDelegate = self;
     }
     return self;
@@ -120,3 +135,9 @@
 - (void)smHandlerProcessFinalMessage:(CPMessage *)msg{}
 @end
 
+@implementation QuittingState
+- (BOOL)processMessage:(CPMessage *)message
+{
+    return NO;
+}
+@end

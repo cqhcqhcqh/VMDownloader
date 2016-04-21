@@ -12,7 +12,7 @@
 #import "VMMoviePlayerViewController.h"
 
 @import Downloader;
-@interface VMViewController ()<UITableViewDelegate,UITableViewDataSource>
+@interface VMViewController ()<UITableViewDelegate,UITableViewDataSource,UIActionSheetDelegate>
 @property (readwrite, nonatomic, strong) VMDownloaderManager *manager;
 @property (weak, nonatomic) IBOutlet UITableView *downloadTableView;
 @property (weak, nonatomic) IBOutlet UITableView *resourceTableView;
@@ -155,7 +155,6 @@ typedef NS_ENUM(NSUInteger, Command) {
     
     if (tableView == self.resourceTableView) {
         VMVideoResource *resource = self.videoResources[indexPath.row];
-        
         VMDownloadRequest *request = [[VMDownloadRequest alloc] init];
         request.url = resource.url;
         request.encriptDescription = @"MD5";
@@ -163,18 +162,26 @@ typedef NS_ENUM(NSUInteger, Command) {
         request.title = resource.title;
         request.MD5Value = resource.md5;
         
+//        for (VMDownloadTask *aTask in self.downloadTasks) {
+//            if(aTask.mMd5 == resource.md5) {
+//                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示" message:@"文件已经在下载列表中" delegate:nil cancelButtonTitle:@"确定" otherButtonTitles:nil];
+//                [alert show];
+//                return;
+//            }
+//        }
         VMDownloadTask *task = [self.manager enqueueWithRequest:request];
         [self.downloadTasks addObject:task];
-        [self.downloadTableView reloadData];
+        [self.downloadTableView insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:self.downloadTasks.count-1 inSection:0]] withRowAnimation:UITableViewRowAnimationAutomatic];
+        
     }else if (tableView == self.downloadTableView) {
         VMDownloadTask *task = self.downloadTasks[indexPath.row];
         if (task.mState == DownloadTaskStateOngoing || task.mState == DownloadTaskStateWaiting) {
             [task pauseTask];
-        }else if (task.mState == DownloadTaskStatePaused || task.mState == DownloadTaskStateRetry) {
+        }else if (task.mState == DownloadTaskStatePaused || task.mState == DownloadTaskStateRetry || task.mState == DownloadTaskStateIOError) {
             [task resumeTask];
         }else if (task.mState == DownloadTaskStateSuccess) {
             
-            NSURL *fileUrl = [NSURL fileURLWithPath:[[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:task.filePath]];
+            NSURL *fileUrl = [NSURL fileURLWithPath:[[task fileDir] stringByAppendingPathComponent:task.filePath]];
             VMMoviePlayerViewController *playerVc = [[VMMoviePlayerViewController alloc] initWithContentURL:fileUrl];
             [self presentMoviePlayerViewControllerAnimated:playerVc];
         }
@@ -185,4 +192,29 @@ typedef NS_ENUM(NSUInteger, Command) {
     
 }
 
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (tableView == self.downloadTableView) {
+        
+        return YES;
+    }
+    return NO;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView == self.downloadTableView) {
+        if (editingStyle == UITableViewCellEditingStyleDelete) {
+            //        UIActionSheet *actionsheet = [[UIActionSheet alloc] initWithTitle:@"是否删除任务对应的文件" delegate:self cancelButtonTitle:@"取消" destructiveButtonTitle:@"删除" otherButtonTitles:nil];
+            //        [actionsheet showInView:self.view];
+            VMDownloadTask *task = self.downloadTasks[indexPath.row];
+            [self.downloadTasks removeObject:task];
+            [task deleteTaskIncludeFile:YES];
+            [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+        }
+    }
+}
+
+//- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+//    
+//}
 @end

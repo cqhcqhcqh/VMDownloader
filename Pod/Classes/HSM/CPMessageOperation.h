@@ -21,7 +21,8 @@ typedef NS_ENUM(NSUInteger, MessageType) {
     
     MessageTypeActionStart,
     MessageTypeActionPaused,
-    MessageTypeActionDelete
+    MessageTypeActionDelete,
+    MessageTypeActionQuit
 };
 
 FOUNDATION_EXPORT NSString* const MessageMapping [];

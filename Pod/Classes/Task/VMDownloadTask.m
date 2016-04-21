@@ -102,21 +102,16 @@ NSString* const DownloadStateDesc[] = {
 @end
 
 @implementation VMDownloadTask
+- (void)dealloc
+{
+    CPStateMechineLog(@"%@任务 挂了 uuid:%@ %@ dealloc",self.uuid,self.title);
+}
 + (void)initialize
 {
     if (self == [VMDownloadTask class]) {
         CACHE_TASKS_REF = [NSMapTable  strongToWeakObjectsMapTable];
     }
 }
-
-//- (NSProgress *)downloadProgress
-//{
-//    if (!_downloadProgress) {
-//        _downloadProgress = [[NSProgress alloc] initWithParent:nil userInfo:nil];
-//        _downloadProgress.totalUnitCount = NSURLSessionTransferSizeUnknown;
-//    }
-//    return _downloadProgress;
-//}
 
 static NSMapTable *CACHE_TASKS_REF;
 
@@ -186,7 +181,7 @@ static NSMapTable *CACHE_TASKS_REF;
     task.url = request.url;
     task.mMd5 = request.MD5Value;
     task.encriptDescription = request.encriptDescription;
-    task.filePath = [uuid stringByAppendingPathComponent:request.destinationFilePath];
+    task.filePath = request.destinationFilePath;
     task.mState = DownloadTaskStateInit;
     task.title = request.title;
     task.netWorkMode = MASK_NETWORK_WIFI;
@@ -340,8 +335,9 @@ static NSMapTable *CACHE_TASKS_REF;
     [self sendMessageType:MessageTypeActionPaused];
 }
 
-- (void)deleteTask {
-    [self sendMessageType:MessageTypeActionDelete];
+- (void)deleteTaskIncludeFile:(BOOL)includeFile{
+    CPMessage *message = [CPMessage messageWithType:MessageTypeActionDelete obj:@(includeFile)];
+    [self sendMessage:message];
 }
 
 - (void)saveTask {
@@ -395,7 +391,7 @@ static NSMapTable *CACHE_TASKS_REF;
             [dict setObject:[NSNumber numberWithLongLong:self.mProgress] forKey:@"progress"];
             [dict setObject:self.mModifyDate forKey:@"_modify"];
             //            [dict setValue:self.mimetype?:@"" forKey:@"mimetype"];
-            //            [dict setValue:self.error?:@"" forKey:@"error"];
+            [dict setValue:self.error?:@"" forKey:@"error"];
             [DownloaderDao updateDownloadTaskWithUUID:self.uuid dictionary:dict];
         }
         
@@ -407,37 +403,42 @@ static NSMapTable *CACHE_TASKS_REF;
     return (self.mState & level) >0;
 }
 
-- (void)resumeDownload
+- (NSString *)fileDir
 {
-    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSError *createDir = nil;
+    NSString *DirPath = [DocumenDir stringByAppendingPathComponent:self.downloaderConfig.identifier];
+    if (![fileManager fileExistsAtPath:DirPath]) {
+        BOOL createSuccess = [fileManager createDirectoryAtPath:DirPath withIntermediateDirectories:NO attributes:nil error:&createDir];
+        NSAssert(createSuccess, @"文件夹创建失败 error:%@",DirPath,[createDir localizedDescription]);
+    }
+    return DirPath;
 }
 
 - (void)downloadRun
 {
-    
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSError *createDir = nil;
-    BOOL isDir = NO;
-    NSString *filePath = [DocumenDir stringByAppendingPathComponent:self.filePath];
-    
-    if (![fileManager fileExistsAtPath:[filePath stringByDeletingLastPathComponent] isDirectory:&isDir]) {
-        BOOL createSuccess = [fileManager createDirectoryAtPath:[filePath stringByDeletingLastPathComponent] withIntermediateDirectories:NO attributes:nil error:&createDir];
-        NSAssert(createSuccess, @"filePath %@ 文件目录创建失败 error:%@",filePath,[createDir localizedDescription]);
+    NSString *filePath = [[self fileDir] stringByAppendingPathComponent:self.filePath];
+    NSError *removeError = nil;
+    if ([[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+        [[NSFileManager defaultManager]removeItemAtPath:filePath error:&removeError];
+        if (removeError) {
+            CPStateMechineLog(@"删除文件出错 %@",removeError.userInfo);
+        }
     }
-    
-    
     __block UInt64 lastDownloadProgress = 0;
     __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
     
     
     VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
+    __weak typeof(self) weakself = self;
+    
     self.urlSessionDownloadTask = [downloadHttp downloadTaskWithRequest:request progress:^(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
         
-        self.mProgress = totalBytesWritten;
-        self.contentLength = totalBytesExpectedToWrite;
-        if (self.retryCount != 0) {
-            self.retryCount = 0;
+        weakself.mProgress = totalBytesWritten;
+        weakself.contentLength = totalBytesExpectedToWrite;
+        if (weakself.retryCount != 0) {
+            weakself.retryCount = 0;
         }
         if (totalBytesWritten < totalBytesExpectedToWrite) {
             UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
@@ -448,16 +449,14 @@ static NSMapTable *CACHE_TASKS_REF;
             
             if (deltaTimeInterval >= 1000) {
                 
-                self.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024);
-                //                NSLog(@"mProgress:%lld  contentLength:%lld 下载速度 %f m/s",self.mProgress,self.contentLength,self.mSpeed);
-                
-                [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.mProgress),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}] delay:1.0];
+                weakself.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024);
+                [weakself sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}] delay:1.0];
                 lastDownloadProgress = totalBytesWritten;
                 lastTimeInterval = currentTimeInterval;
             }
         }else {
             
-            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.mProgress),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}]];
+            [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}]];
         }
         
     } fileURL:^NSString *(NSURLResponse *response) {
@@ -469,13 +468,13 @@ static NSMapTable *CACHE_TASKS_REF;
             //
             //            }else {
             if (![error.localizedDescription isEqualToString:@"cancelled"]) {
-                self.error = error.localizedDescription;
+                weakself.error = error.localizedDescription;
             }
-            [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];;
+            [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
             //            }
             
         }else {
-            [self sendMessageType:MessageTypeEventTaskDone];
+            [weakself sendMessageType:MessageTypeEventTaskDone];
         }
     }];
     [self.urlSessionDownloadTask resume];
@@ -515,12 +514,12 @@ static NSMapTable *CACHE_TASKS_REF;
             //删除任务和文件 OR Just 任务
             if([message.obj boolValue]){
                 NSError *deleteError = nil;
-                BOOL deleteSuccess = [[NSFileManager defaultManager] removeItemAtPath:[DocumenDir stringByAppendingPathComponent:self.downloadTask.filePath] error:&deleteError];
+                BOOL deleteSuccess = [[NSFileManager defaultManager] removeItemAtPath:[[self.downloadTask fileDir] stringByAppendingPathComponent: self.downloadTask.filePath] error:&deleteError];
                 if (deleteError) {
                     CPStateMechineLog(@"删除文件:%@ error%@",deleteSuccess?@"成功":@"失败",[deleteError userInfo]);
                 }
-                //quitNow();
             }
+            [self.downloadTask quitNow];
             return YES;
         default:
             return NO;
@@ -662,7 +661,7 @@ static NSMapTable *CACHE_TASKS_REF;
     
     if ([self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
         self.downloadTask.retryCount++;
-        CPStateMechineLog(@"进入到Retry状态,重试%d次数");
+        CPStateMechineLog(@"进入到Retry状态,重试%d次数",self.downloadTask.retryCount);
         CPMessage *msg = [CPMessage messageWithType:MessageTypeEventRetryRequest];
         [self.downloadTask sendMessageDelayed:msg delay:3.0];
         
@@ -707,7 +706,7 @@ static NSMapTable *CACHE_TASKS_REF;
             if ([self.downloadTask retryCount] <= self.downloadTask.downloaderConfig.maxDownloadCount) {
                 if ([self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
                     //进入到Retry时
-                    if([[NSFileManager defaultManager] fileExistsAtPath:[DocumenDir stringByAppendingPathComponent:self.downloadTask.filePath]]){
+                    if([[NSFileManager defaultManager] fileExistsAtPath:[[self.downloadTask fileDir] stringByAppendingPathComponent:self.downloadTask.filePath]]){
                         [self.downloadTask transitionToState:self.downloadTask.mOngoing];
                     }else {
                         self.downloadTask.error = @"文件路径不存在";
@@ -798,7 +797,7 @@ static NSMapTable *CACHE_TASKS_REF;
     [self.downloadTask saveTask];
     
     if([self.downloadTask needVerify]) {
-        if([self.downloadTask.downloaderManager verifyMd5WithFilePath:self.downloadTask.filePath md5Result:self.downloadTask.mMd5]) {
+        if([self.downloadTask.downloaderManager verifyMd5WithFilePath:[[self.downloadTask fileDir] stringByAppendingPathComponent:self.downloadTask.filePath] md5Result:self.downloadTask.mMd5]) {
             [self sendMessageType:MessageTypeEventVerifyPass];
         }else{
             [self sendMessageType:MessageTypeEventVerifyFail];

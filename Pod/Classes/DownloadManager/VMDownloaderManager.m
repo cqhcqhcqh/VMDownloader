@@ -186,7 +186,7 @@ static NSMutableDictionary *MANAGERS;
 
 - (void)reachabilityChanged:(NSNotification *)note
 {
-    NSLog(@"reachabilityChanged --->>>>>>%zd",[note.object currentReachabilityStatus]);
+    NSLog(@"reachabilityChanged --->>>>>>%@",[note.object currentReachabilityString]);
     [self sendNetworkChanged];
 }
 
@@ -239,9 +239,7 @@ static NSMutableDictionary *MANAGERS;
 #pragma mark - MD5校验
 - (BOOL)verifyMd5WithFilePath:(NSString *)filePath md5Result:(NSString *)md5Result
 {
-    NSString *fullFilePath = [DocumenDir stringByAppendingPathComponent:filePath];
-    NSLog(@"fullFilePath  %@",fullFilePath);
-    if([md5Result isEqualToString:[fullFilePath MD5FilePath]]) {
+    if([md5Result isEqualToString:[filePath MD5FilePath]]) {
         return YES;
     }
     return NO;

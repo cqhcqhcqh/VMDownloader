@@ -9,12 +9,18 @@
 #import <Foundation/Foundation.h>
 #import "CPMessageOperation.h"
 #import "SmHandler.h"
+#import "State.h"
 
-@class State,CPMessagesQueue,SmHandler;
+@class CPMessagesQueue,SmHandler;
 
-@interface StateMachine : NSObject <SmHandlerDelegate>
+@interface QuittingState : State
 
-@property(nonatomic, strong) State *destState;
+@end
+
+
+@interface StateMachine : NSObject
+@property (readonly, nonatomic, strong) QuittingState *quittingState;
+@property (nonatomic, strong) State *destState;
 
 @property (readonly, nonatomic, strong) SmHandler *smHandler;
 + (instancetype) stateMachine;
@@ -42,5 +48,29 @@
 - (void) transitionToState:(State *)destState;
 
 - (void) sendMessageDelayed:(CPMessage *)msg delay:(NSTimeInterval)delay;
+
+/**
+ *  退出状态机
+ */
+- (void)quitNow;
+
+/**
+ *  根据msg判断是否是退出message
+ *
+ *  @param msg 消息
+ *
+ *  @return 是否退出
+ */
+- (BOOL)isQuit:(CPMessage *)msg;
+
+/**
+ *  smHandlerProcessFinalMessage
+ *  自定义的method,在performTransition的时候调用,做数据库使用
+ *
+ *  @param msg 消息
+ */
+
+- (void)smHandlerProcessFinalMessage:(CPMessage *)msg;
+
 @end
 

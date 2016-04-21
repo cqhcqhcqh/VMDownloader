@@ -40,16 +40,19 @@
             self.stateLabel.text = @"暂停";
             break;
         case DownloadTaskStateRetry:
-            self.stateLabel.text = @"重试";
+            self.stateLabel.text = [task.error stringByAppendingString:@"点击重试"];
             break;
         case DownloadTaskStateSuccess:
             self.stateLabel.text = @"下载成功";
             break;
         case DownloadTaskStateFailure:
-            self.stateLabel.text = @"下载失败";
+            self.stateLabel.text = @"下载失败(校验失败)";
             break;
         case DownloadTaskStateWaiting:
             self.stateLabel.text = @"等待中";
+            break;
+        case DownloadTaskStateIOError:
+            self.stateLabel.text = @"多次下载失败";
             break;
         default:
             break;
