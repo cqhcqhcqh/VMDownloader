@@ -67,12 +67,18 @@ typedef NS_ENUM(NSUInteger, Command) {
         }
     }];
 }
+
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
     
     [CPNotificationManager registerWithObserver:self name:kMessageTypeEventProgress selector:@selector(progressChange:)];
     [CPNotificationManager registerWithObserver:self name:kDownloadStateChange selector:@selector(downloadStateChange:)];
+}
+
+- (IBAction)swithChange:(UISwitch *)sender {
+    NSLog(@"swithChange %@",sender.isOn?@"开":@"关");
+    [self.manager.downloadConfig setAllowMobileNetwork:sender.isOn];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -136,7 +142,6 @@ typedef NS_ENUM(NSUInteger, Command) {
         static NSString *ID = @"DownloadCell";
         cell = [tableView dequeueReusableCellWithIdentifier:ID forIndexPath:indexPath];
         VMDownloadTaskTableViewCell *downloadCell = (VMDownloadTaskTableViewCell*)cell;
-        
         VMDownloadTask *task = self.downloadTasks[indexPath.row];
         downloadCell.task = task;
     }

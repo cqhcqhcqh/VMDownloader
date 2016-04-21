@@ -11,6 +11,7 @@
 #import "VMDownloadTask.h"
 #import "ConnectionUtils.h"
 
+#define USERDEFAULT [NSUserDefaults standardUserDefaults]
 
 #define DEFAULT_MAX_DOWNLOAD_COUNT 3
 #define DEFAULT_NETWORK_MODE MASK_NETWORK_WIFI
@@ -19,24 +20,23 @@ NSString * const MAX_DOWNLOAD_COUNT = @"_max_download_count";
 
 @interface VMDownloadConfig ()
 @property (readwrite, nonatomic, copy) NSString *identifier;
-@property (readwrite, nonatomic, strong) VMSharedPreferences *sharePreference;
-- (instancetype)initWithSharedPreferences:(VMSharedPreferences *)sharePreferences identifier:(NSString*)key;
+//@property (readwrite, nonatomic, strong) VMSharedPreferences *sharePreference;
+- (instancetype)initWithIdentifier:(NSString*)key;
 @end
 @implementation VMDownloadConfig
 
 #pragma mark -  向外暴露的方法
 + (instancetype)loadLocalConfigFromPreference:(NSString *)identifier {
     
-    NSString *downloadIdentifier = [NSString stringWithFormat:@"_download_config_%@",identifier];
-    VMSharedPreferences *sharePreferences = [VMSharedPreferences sharedPreferencesWithIdentifier:downloadIdentifier];
-    return [[self alloc] initWithSharedPreferences:sharePreferences identifier:identifier];
+//    NSString *downloadIdentifier = [NSString stringWithFormat:@"_download_config_%@",identifier];
+//    VMSharedPreferences *sharePreferences = [VMSharedPreferences sharedPreferencesWithIdentifier:downloadIdentifier];
+    return [[self alloc] initWithIdentifier:identifier];
 }
 
 #pragma mark - 内部的构造方法
-- (instancetype)initWithSharedPreferences:(VMSharedPreferences *)sharePreferences identifier:(NSString*)identifier{
+- (instancetype)initWithIdentifier:(NSString*)identifier{
     if (self == [super init]) {
         _identifier = identifier;
-        _sharePreference = sharePreferences;
         [self setNetworkMode:DEFAULT_NETWORK_MODE];
         [self setAllowWifiNetwork:YES];
         [self setAllowMobileNetwork:NO];
@@ -46,20 +46,20 @@ NSString * const MAX_DOWNLOAD_COUNT = @"_max_download_count";
 }
 
 - (void)setMaxDownloadCount:(NSInteger)count{
-    [_sharePreference setInteger:count forKey:MAX_DOWNLOAD_COUNT];
-    [_sharePreference synchronize];
+    [USERDEFAULT setInteger:count forKey:MAX_DOWNLOAD_COUNT];
+    [USERDEFAULT synchronize];
 }
 
 - (void)setNetworkMode:(NSInteger)mode {
-    [_sharePreference setInteger:mode forKey:NETWORK_MODE];
-    [_sharePreference synchronize];
+    [USERDEFAULT setInteger:mode forKey:NETWORK_MODE];
+    [USERDEFAULT synchronize];
 }
 
 - (NSInteger)getNetworkMode {
-    return [_sharePreference integerForKey:NETWORK_MODE];
+    return [USERDEFAULT integerForKey:NETWORK_MODE];
 }
 - (NSInteger)maxDownloadCount{
-    return [_sharePreference integerForKey:MAX_DOWNLOAD_COUNT];
+    return [USERDEFAULT integerForKey:MAX_DOWNLOAD_COUNT];
 }
 
 - (BOOL)allowWifiNetwork {
@@ -73,27 +73,27 @@ NSString * const MAX_DOWNLOAD_COUNT = @"_max_download_count";
 - (void)setAllowMobileNetwork:(BOOL)isAllow
 {
     if (isAllow) {
-        [_sharePreference setInteger:[self getNetworkMode] | MASK_NETWORK_MOBILE forKey:NETWORK_MODE];
+        [USERDEFAULT setInteger:[self getNetworkMode] | MASK_NETWORK_MOBILE forKey:NETWORK_MODE];
     }else {
         //~按位取反
         //默认允许Wifi(0...01)
         //0...01 & ~0...10 => 0....01 & 1...01 = 0...01 = 1
-        [_sharePreference setInteger:[self getNetworkMode] & ~MASK_NETWORK_MOBILE forKey:NETWORK_MODE];
+        [USERDEFAULT setInteger:[self getNetworkMode] & ~MASK_NETWORK_MOBILE forKey:NETWORK_MODE];
     }
-    [_sharePreference synchronize];
+    [USERDEFAULT synchronize];
 }
 
 - (void)setAllowWifiNetwork:(BOOL)isAllow
 {
     if (isAllow) {
-        [_sharePreference setInteger:[self getNetworkMode] | MASK_NETWORK_WIFI forKey:NETWORK_MODE];
+        [USERDEFAULT setInteger:[self getNetworkMode] | MASK_NETWORK_WIFI forKey:NETWORK_MODE];
     }else {
         //~按位取反
         //默认允许Wifi(0...01)
         //0...01 & ~0...01 => 0....01 & 1...10 = 0...00 = 0
-        [_sharePreference setInteger:[self getNetworkMode] & ~MASK_NETWORK_WIFI forKey:NETWORK_MODE];
+        [USERDEFAULT setInteger:[self getNetworkMode] & ~MASK_NETWORK_WIFI forKey:NETWORK_MODE];
     }
-    [_sharePreference synchronize];
+    [USERDEFAULT synchronize];
 }
 
 - (BOOL)isNetworkAllowedFor:(VMDownloadTask *)task {

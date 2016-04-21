@@ -19,7 +19,6 @@ FOUNDATION_EXTERN NSString * const MAX_DOWNLOAD_COUNT;
 @property (readwrite, nonatomic, assign) BOOL allowWifiNetwork;
 @property (readwrite, nonatomic, assign) BOOL allowMobileNetwork;
 @property (readwrite, nonatomic, assign) NSInteger maxDownloadCount;
-
 /**
  *  唯一身份识别
  */

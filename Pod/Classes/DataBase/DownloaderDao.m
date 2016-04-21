@@ -71,18 +71,20 @@ static FMDatabase *database;
 + (NSArray *)recoverWorkingTasksWithThread:(NSThread *)thread key:(NSString *)key{
     FMResultSet *resultSet = [database executeQuery:@"SELECT * from t_downloads where state <= ?",@(DownloadTaskStateVerifying)];
     NSMutableArray *array = [NSMutableArray array];
+    NSString *log = [NSString stringWithFormat:@"恢复[完]中断的下载任务:[\n"];
     while ([resultSet next]) {
         VMDownloadTask *task = [VMDownloadTask recoveryDownloadTaskWithRunloopThread:thread key:key resultSet:resultSet autoStart:NO];
-        DatabaseLog(@"恢复中断的下载任务 state %@ title:%@ uuid:%@",DownloadStateDesc[task.mState],task.title,task.uuid);
+        log = [log stringByAppendingFormat:@"state %@ title:%@ uuid:%@,\n",DownloadStateDesc[task.mState],task.title,task.uuid];
         [array addObject:task];
     }
+    DatabaseLog(@"%@]\n",log);
     return array;
 }
 
 + (NSArray *)recoverTasksWithThread:(NSThread *)thread key:(NSString *)key miniState:(int)miniState {
     FMResultSet *resultSet = [database executeQuery:@"SELECT * from t_downloads where state > ?",@(miniState)];
     NSMutableArray *array = [NSMutableArray array];
-    NSString *log = [NSString stringWithFormat:@"恢复数据库中的State>0的所有Task:[\n"];
+    NSString *log = [NSString stringWithFormat:@"恢复[完] 数据库中的State>0的所有Task:[\n"];
     
     while ([resultSet next]) {
         VMDownloadTask *task = [VMDownloadTask recoveryDownloadTaskWithRunloopThread:thread key:key resultSet:resultSet autoStart:YES];

@@ -17,9 +17,9 @@
     
     self.titleView.text = task.title;
     
-    self.totalDownloadLabel.text = [NSString stringWithFormat:@"%.2fMB",task.contentLength/(1024*1024.0)];
-    self.currentDownloadLabel.text = [NSString stringWithFormat:@"%.2fMB",task.mProgress/(1024*1024.0)];
-    if (task.contentLength != 0) {
+    self.totalDownloadLabel.text = [NSString stringWithFormat:@"%.2f MB",task.contentLength/(1024*1024.0)];
+    self.currentDownloadLabel.text = [NSString stringWithFormat:@"%.2f MB",task.mProgress/(1024*1024.0)];
+    if (task.contentLength > 0) {
         self.progressView.progress = task.mProgress*1.0 / task.contentLength;
     }else {
         self.progressView.progress = 0.0f;

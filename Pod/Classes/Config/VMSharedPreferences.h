@@ -9,6 +9,9 @@
 #import <Foundation/Foundation.h>
 
 @interface VMSharedPreferences : NSObject
+
+@property (readonly, nonatomic, copy) NSString *identifier;
+
 /**
  *  默认SharedPreferences
  *  在USERDEFAULT中存储一个preferences对应的Dictionary

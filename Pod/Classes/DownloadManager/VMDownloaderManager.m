@@ -27,7 +27,7 @@
 #import "CPLoggerManager.h"
 #import "Reachability.h"
 #import "DownloaderDao.h"
-
+#import "VMSharedPreferences.h"
 @interface VMDownloaderManager ()
 @property (readwrite, nonatomic, strong) VMDownloadConfig *downloadConfig;
 @property (readwrite, nonatomic, strong) NSThread *downloadTaskRunLoopThread;
@@ -173,13 +173,14 @@ static NSMutableDictionary *MANAGERS;
 
 #pragma mark --- StartObserver
 - (void)startObserverNetworkState {
+    
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.baidu.com"];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
     [reach startNotifier];
     
-    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-    [nc addObserver:self forKeyPath:MAX_DOWNLOAD_COUNT options:NSKeyValueObservingOptionNew context:nil];
-    [nc addObserver:self forKeyPath:NETWORK_MODE options:NSKeyValueObservingOptionNew context:nil];
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    [ud addObserver:self forKeyPath:MAX_DOWNLOAD_COUNT options:NSKeyValueObservingOptionOld|NSKeyValueObservingOptionNew context:nil];
+    [ud addObserver:self forKeyPath:NETWORK_MODE options:NSKeyValueObservingOptionOld|NSKeyValueObservingOptionNew context:nil];
 }
 
 
@@ -192,6 +193,7 @@ static NSMutableDictionary *MANAGERS;
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context
 {
+    NSLog(@"observeValueForKeyPath change:%@",change);
     if ([keyPath isEqualToString:NETWORK_MODE]) {
         [self sendNetworkChanged];
     }
