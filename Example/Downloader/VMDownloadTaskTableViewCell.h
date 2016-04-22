@@ -10,6 +10,7 @@
 @import Downloader;
 
 @interface VMDownloadTaskTableViewCell : UITableViewCell
+@property (weak, nonatomic) IBOutlet UISwitch *swithControl;
 @property (weak, nonatomic) IBOutlet UILabel *titleView;
 @property (weak, nonatomic) IBOutlet UIProgressView *progressView;
 @property (weak, nonatomic) IBOutlet UIView *showDownloadView;
@@ -20,5 +21,5 @@
 @property (weak, nonatomic) IBOutlet UILabel *speedLabel;
 @property (weak, nonatomic) IBOutlet UILabel *percentLabel;
 
-@property (readwrite, nonatomic, weak) VMDownloadTask *task;
+@property (readwrite, nonatomic, strong) VMDownloadTask *task;
 @end

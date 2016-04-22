@@ -217,6 +217,8 @@ static NSMapTable *CACHE_TASKS_REF;
     }else {
         _netWorkMode = _netWorkMode & ~MASK_NETWORK_MOBILE;
     }
+    [self saveTask];
+    [self sendMessageType:MessageTypeEventNetworkConnectionChange];
 }
 
 - (BOOL)allowMobileNetWork {
@@ -229,6 +231,8 @@ static NSMapTable *CACHE_TASKS_REF;
     }else {
         _netWorkMode = _netWorkMode & ~MASK_NETWORK_WIFI;
     }
+    [self saveTask];
+    [self sendMessageType:MessageTypeEventNetworkConnectionChange];
 }
 
 - (BOOL)allowWifiNetWork {
@@ -435,9 +439,13 @@ static NSMapTable *CACHE_TASKS_REF;
 
 - (void)downloadRunWithFilePath:(NSString *)filePath
 {
-   if (self.mProgress == self.contentLength && self.contentLength != 0) {
+    if (self.mProgress == self.contentLength && self.contentLength != 0) {
         [self sendMessageType:MessageTypeEventTaskDone];
     }else {
+        if (![self.downloaderConfig isNetworkAllowedFor:self]) {
+            [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException]];
+            return;
+        }
         __block UInt64 lastDownloadProgress = 0;
         __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
@@ -477,14 +485,17 @@ static NSMapTable *CACHE_TASKS_REF;
             return filePath;
         } didFinishLoading:^{
             [writeHandle closeFile];
+            [weakself sendMessageType:MessageTypeEventTaskDone];
         } completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
             [writeHandle closeFile];
             if (error) {
                 weakself.error = error.localizedDescription;
                 [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
-            }else {
-                [weakself sendMessageType:MessageTypeEventTaskDone];
             }
+            /*else {
+             [weakself sendMessageType:MessageTypeEventTaskDone];
+             }
+             */
         }];
     }
 }
@@ -751,7 +762,7 @@ static NSMapTable *CACHE_TASKS_REF;
     NSArray *tasks = self.downloadTask.mDownloading.tasks;
     if([tasks count] < self.downloadTask.downloaderConfig.maxDownloadCount) {
         if([self.tasks firstObject] == self.downloadTask) {
-            if (([ConnectionUtils isNetworkConnected] && [self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) || self.downloadTask.contentLength == 0) {
+            if (([ConnectionUtils isNetworkConnected] && [self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) || (self.downloadTask.contentLength == 0)) {
                 [self.downloadTask transitionToState:self.downloadTask.mOngoing];
             }else {
                 [self.downloadTask transitionToState:self.downloadTask.mRetry];
@@ -770,7 +781,7 @@ static NSMapTable *CACHE_TASKS_REF;
             VMDownloadTask *firstWaitingTask = [self.tasks firstObject];
             if (firstWaitingTask == self.downloadTask) {
                 if ([self.downloadTask.mDownloading tasks].count < self.downloadTask.downloaderConfig.maxDownloadCount) {
-                    if ([ConnectionUtils isNetworkConnected] && [self.downloadTask.downloaderConfig isNetworkAllowedFor:firstWaitingTask]) {
+                    if (([ConnectionUtils isNetworkConnected] && [self.downloadTask.downloaderConfig isNetworkAllowedFor:firstWaitingTask]) || (self.downloadTask.contentLength == 0)) {
                         [self.downloadTask transitionToState:self.downloadTask.mOngoing];
                     }else{
                         [self.downloadTask transitionToState:self.downloadTask.mRetry];

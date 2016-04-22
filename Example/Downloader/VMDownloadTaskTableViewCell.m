@@ -15,6 +15,7 @@
 {
     _task = task;
     
+    self.swithControl.on = task.allowMobileNetWork;
     self.titleView.text = task.title;
     
     self.totalDownloadLabel.text = [NSString stringWithFormat:@"%.2f MB",task.contentLength/(1024*1024.0)];
@@ -57,6 +58,10 @@
         default:
             break;
     }
+    
+}
+- (IBAction)swithValueChange:(UISwitch *)sender {
+    [self.task setAllowMobileNetWork:sender.isOn];
 }
 
 - (void)dealloc

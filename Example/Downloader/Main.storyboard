@@ -117,11 +117,17 @@
                                                     </constraints>
                                                 </view>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="标题" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="lUo-l6-1xN">
-                                                    <rect key="frame" x="12" y="28" width="34" height="21"/>
+                                                    <rect key="frame" x="12" y="48" width="34" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="phK-oX-p3H">
+                                                    <rect key="frame" x="5" y="0.0" width="51" height="31"/>
+                                                    <connections>
+                                                        <action selector="swithValueChange:" destination="duE-b1-vRJ" eventType="valueChanged" id="f58-u1-fLG"/>
+                                                    </connections>
+                                                </switch>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstAttribute="trailing" secondItem="wlE-Xf-FBT" secondAttribute="trailing" constant="8" id="7nK-vC-wtW"/>
@@ -129,12 +135,14 @@
                                                 <constraint firstItem="wlE-Xf-FBT" firstAttribute="top" secondItem="gpY-39-SM0" secondAttribute="top" constant="8" id="ALR-3W-xfM"/>
                                                 <constraint firstItem="DkI-WG-Ian" firstAttribute="top" secondItem="xQ8-9w-eNa" secondAttribute="bottom" constant="8" id="Eff-Fe-yWz"/>
                                                 <constraint firstAttribute="bottom" secondItem="DkI-WG-Ian" secondAttribute="bottom" constant="2" id="Qkw-AR-92b"/>
-                                                <constraint firstItem="lUo-l6-1xN" firstAttribute="centerY" secondItem="gpY-39-SM0" secondAttribute="centerY" id="dE2-PX-ojG"/>
+                                                <constraint firstItem="phK-oX-p3H" firstAttribute="centerY" secondItem="gpY-39-SM0" secondAttribute="centerY" constant="-22.75" id="TFb-Ek-Ra3"/>
+                                                <constraint firstItem="lUo-l6-1xN" firstAttribute="centerY" secondItem="gpY-39-SM0" secondAttribute="centerY" constant="20" id="dE2-PX-ojG"/>
                                                 <constraint firstItem="lUo-l6-1xN" firstAttribute="centerX" secondItem="gpY-39-SM0" secondAttribute="centerX" constant="-71.5" id="gc9-fJ-77P"/>
                                                 <constraint firstItem="DkI-WG-Ian" firstAttribute="leading" secondItem="gpY-39-SM0" secondAttribute="leading" constant="8" id="giN-Mh-uQD"/>
                                                 <constraint firstAttribute="trailing" secondItem="xQ8-9w-eNa" secondAttribute="trailing" constant="8" id="isH-do-DuB"/>
                                                 <constraint firstAttribute="trailing" secondItem="DkI-WG-Ian" secondAttribute="trailing" id="lVP-G3-Jxl"/>
                                                 <constraint firstAttribute="trailing" secondItem="OUV-dL-BOE" secondAttribute="trailing" constant="8" id="s6I-7H-H9W"/>
+                                                <constraint firstItem="phK-oX-p3H" firstAttribute="centerX" secondItem="gpY-39-SM0" secondAttribute="centerX" constant="-71" id="xHd-3B-4kU"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                         <connections>
@@ -145,6 +153,7 @@
                                             <outlet property="speedLabel" destination="wc6-8p-iQe" id="fuL-Py-hXM"/>
                                             <outlet property="speedView" destination="OUV-dL-BOE" id="osI-LK-wcS"/>
                                             <outlet property="stateLabel" destination="xQ8-9w-eNa" id="ORU-kh-sWq"/>
+                                            <outlet property="swithControl" destination="phK-oX-p3H" id="J5U-OC-jOb"/>
                                             <outlet property="titleView" destination="lUo-l6-1xN" id="Cm8-Kv-qig"/>
                                             <outlet property="totalDownloadLabel" destination="ItO-Zh-a0Z" id="JIV-Ff-hsQ"/>
                                         </connections>
@@ -191,7 +200,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="tc2-Qw-aMS" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-183" y="33"/>
+            <point key="canvasLocation" x="-579" y="8"/>
         </scene>
     </scenes>
 </document>
