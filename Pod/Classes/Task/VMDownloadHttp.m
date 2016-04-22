@@ -16,24 +16,22 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
 
 @property (nonatomic, assign)long long currentLength; /**< 当前已经下载的大小 */
 
-@property (nonatomic, strong) NSOutputStream *outputStream ; /**< 输出流 */
+//@property (nonatomic, strong) NSOutputStream *outputStream ; /**< 输出流 */
 
 @property (nonatomic, copy) NSString *path; /**< 文件路径 */
 
 @property (readwrite, nonatomic, strong) NSMutableURLRequest *request;
 
 @property (readwrite, nonatomic, copy) VMURLSessionTaskCompletionHandler completionHandler;
-
+@property (readwrite, nonatomic, copy) void(^finishDownload) ();
 @property (readwrite, nonatomic, copy) ProgressBlock downloadProgress;
 
 @property (nonatomic, strong) NSURLConnection *conn;
 @end
 
 @implementation VMDownloadHttp
-- (NSURLConnection *)downloadTaskWithRequest:(NSURLRequest *)request
-                                   progress:(ProgressBlock)downloadProgressBlock
-                                fileURL:(nullable NSString * (^)(NSURLResponse *response))fileURL
-                          completionHandler:(nullable void (^)(NSURLResponse *response, NSError * _Nullable error))completionHandler {
+
+- (NSURLConnection *)downloadTaskWithRequest:(NSURLRequest *)request progress:(ProgressBlock)downloadProgressBlock fileURL:(NSString *(^)(NSURLResponse *))fileURL didFinishLoading:(void (^)())finish completionHandler:(void (^)(NSURLResponse *, NSError * _Nullable))completionHandler {
     self.downloadProgress = downloadProgressBlock;
     if (fileURL) {
         self.path = fileURL(nil);
@@ -41,9 +39,20 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
     }
     self.request = [NSMutableURLRequest requestWithURL:request.URL];
     self.completionHandler = completionHandler;
+    self.finishDownload = finish;
     return self.conn;
 }
 
++ (void)getHttpHeadWithUrlString:(NSString *)urlstring completion:(void(^)(NSURLResponse * response,NSData *data, NSError * connectionError))completion
+{
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:urlstring]];
+    request.HTTPMethod = @"HEAD";
+    [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue new] completionHandler:^(NSURLResponse * _Nullable response, NSData * _Nullable data, NSError * _Nullable connectionError) {
+        if (completion) {
+            completion(response,data,connectionError);
+        }
+    }];
+}
 
 - (NSURLConnection *)conn
 {
@@ -73,9 +82,9 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
     // 初始化文件总大小
     self.totalLength = response.expectedContentLength + [self getFileSizeWithPath:self.path];
     
-    // 打开输出流
-    self.outputStream = [NSOutputStream outputStreamToFileAtPath:self.path append:YES];
-    [self.outputStream open];
+//    // 打开输出流
+//    self.outputStream = [NSOutputStream outputStreamToFileAtPath:self.path append:YES];
+//    [self.outputStream open];
 }
 
 
@@ -88,10 +97,10 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
     self.currentLength += data.length;
     
     if (self.downloadProgress) {
-        self.downloadProgress(data.length,self.currentLength,self.totalLength);
+        self.downloadProgress(data,self.currentLength,self.totalLength);
     }
     // 写入数据
-    [self.outputStream write:data.bytes maxLength:data.length];
+//    [self.outputStream write:data.bytes maxLength:data.length];
     
 }
 
@@ -99,10 +108,10 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
     // 关闭输出流
-    [self.outputStream close];
+//    [self.outputStream close];
     
-    if (self.completionHandler) {
-        self.completionHandler(nil,nil);
+    if (self.finishDownload) {
+        self.finishDownload();
     }
 }
 

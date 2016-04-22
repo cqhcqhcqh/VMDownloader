@@ -74,6 +74,16 @@ typedef NS_ENUM(NSUInteger, Command) {
     
     [CPNotificationManager registerWithObserver:self name:kMessageTypeEventProgress selector:@selector(progressChange:)];
     [CPNotificationManager registerWithObserver:self name:kDownloadStateChange selector:@selector(downloadStateChange:)];
+    [CPNotificationManager registerWithObserver:self name:kDownloadNetworkNotPermission selector:@selector(networkNotPermission:)];
+}
+
+
+- (void)networkNotPermission:(NSNotification *)note{
+    CPNoteMessage *msg = note.object;
+    if(msg.type == MessageTypeActionStart) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示" message:@"网络状态不允许" delegate:nil cancelButtonTitle:@"确定" otherButtonTitles:nil];
+        [alert show];
+    }
 }
 
 - (IBAction)swithChange:(UISwitch *)sender {

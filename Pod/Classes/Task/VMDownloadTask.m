@@ -73,6 +73,8 @@ NSString* const DownloadStateDesc[] = {
 @property (readwrite, nonatomic, assign) BOOL needVerify;
 @property (readwrite, nonatomic, assign) NSInteger retryCount;
 
+//@property (nonatomic, strong) NSFileHandle *writeHandle;
+
 /**
  *  私有的初始化方法
  *
@@ -87,7 +89,7 @@ NSString* const DownloadStateDesc[] = {
 /**
  *  私有的下载方法
  */
-- (void)downloadRun;
+- (void)requestContentLengthRun;
 
 /**
  *  数据库恢复Task方法,并且主动[task start]
@@ -415,73 +417,77 @@ static NSMapTable *CACHE_TASKS_REF;
     return DirPath;
 }
 
-- (void)downloadRun
+- (void)requestContentLengthRun
 {
     NSString *filePath = [[self fileDir] stringByAppendingPathComponent:self.filePath];
-//    NSError *removeError = nil;
-//    if ([[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-//        [[NSFileManager defaultManager]removeItemAtPath:filePath error:&removeError];
-//        if (removeError) {
-//            CPStateMechineLog(@"删除文件出错 %@",removeError.userInfo);
-//        }
-//    }
-    __block UInt64 lastDownloadProgress = 0;
-    __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
-    
-    
-    VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
-    __weak typeof(self) weakself = self;
-    
-    self.urlConnection = [downloadHttp downloadTaskWithRequest:request progress:^(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
-        
-        weakself.mProgress = totalBytesWritten;
-        weakself.contentLength = totalBytesExpectedToWrite;
-        if (weakself.retryCount != 0) {
-            weakself.retryCount = 0;
-        }
-        if (totalBytesWritten < totalBytesExpectedToWrite) {
-            UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
-            
-            UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;
-            
-            UInt64 deltaProgress = totalBytesWritten - lastDownloadProgress;
-            
-            if (deltaTimeInterval >= 1000) {
-                
-                weakself.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024);
-                [weakself sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}] delay:1.0];
-                lastDownloadProgress = totalBytesWritten;
-                lastTimeInterval = currentTimeInterval;
+    if (self.contentLength == 0) {
+        [VMDownloadHttp getHttpHeadWithUrlString:self.url completion:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
+            self.contentLength = response.expectedContentLength;
+            if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+                [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
             }
-        }else {
-            
-            [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}]];
-        }
-        
-    } fileURL:^NSString *(NSURLResponse *response) {
-        return filePath;
-    } completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
-        if (error) {
-            //            [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(self.contentLength),@"length":@(self.contentLength),@"speed":[NSNumber numberWithFloat:self.mSpeed]}] delay:1.0];
-            //            if ([error.localizedDescription isEqualToString:@"cancelled"]) {
-            //
-            //            }else {
-            if (![error.localizedDescription isEqualToString:@"cancelled"]) {
-                weakself.error = error.localizedDescription;
-            }
-            [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
-            //            }
-            
-        }else {
-            [weakself sendMessageType:MessageTypeEventTaskDone];
-        }
-    }];
-//    [self.urlConnection start];
-    
+            [self downloadRunWithFilePath:filePath];
+        }];
+    }else {
+        [self downloadRunWithFilePath:filePath];
+    }
 }
 
-
+- (void)downloadRunWithFilePath:(NSString *)filePath
+{
+   if (self.mProgress == self.contentLength && self.contentLength != 0) {
+        [self sendMessageType:MessageTypeEventTaskDone];
+    }else {
+        __block UInt64 lastDownloadProgress = 0;
+        __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
+        VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
+        __weak typeof(self) weakself = self;
+        NSFileHandle *writeHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
+        self.urlConnection = [downloadHttp downloadTaskWithRequest:request progress:^(NSData *data, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
+            
+            weakself.mProgress = totalBytesWritten;
+            [writeHandle seekToEndOfFile];
+            // 从当前移动的位置(文件尾部)开始写入数据
+            [writeHandle writeData:data];
+            
+            if (weakself.retryCount != 0) {
+                weakself.retryCount = 0;
+            }
+            if (totalBytesWritten < totalBytesExpectedToWrite) {
+                UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
+                
+                UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;
+                
+                UInt64 deltaProgress = totalBytesWritten - lastDownloadProgress;
+                
+                if (deltaTimeInterval >= 1000) {
+                    
+                    weakself.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024);
+                    [weakself sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}] delay:1.0];
+                    lastDownloadProgress = totalBytesWritten;
+                    lastTimeInterval = currentTimeInterval;
+                }
+            }else {
+                
+                [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}]];
+            }
+            
+        } fileURL:^NSString *(NSURLResponse *response) {
+            return filePath;
+        } didFinishLoading:^{
+            [writeHandle closeFile];
+        } completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
+            [writeHandle closeFile];
+            if (error) {
+                weakself.error = error.localizedDescription;
+                [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
+            }else {
+                [weakself sendMessageType:MessageTypeEventTaskDone];
+            }
+        }];
+    }
+}
 @end
 
 
@@ -611,7 +617,7 @@ static NSMapTable *CACHE_TASKS_REF;
     self.downloadTask.mState = DownloadTaskStateOngoing;
     [self.downloadTask saveTask];
     
-    [self.downloadTask downloadRun];
+    [self.downloadTask requestContentLengthRun];
 }
 
 - (void)exit
@@ -689,7 +695,7 @@ static NSMapTable *CACHE_TASKS_REF;
     switch (message.type) {
         case MessageTypeActionStart:
             if (![self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
-                [CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:0 message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
+                [CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:message.type message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
                 return YES;
             }
             /*
