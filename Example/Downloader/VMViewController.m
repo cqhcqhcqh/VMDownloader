@@ -162,13 +162,13 @@ typedef NS_ENUM(NSUInteger, Command) {
         request.title = resource.title;
         request.MD5Value = resource.md5;
         
-//        for (VMDownloadTask *aTask in self.downloadTasks) {
-//            if(aTask.mMd5 == resource.md5) {
-//                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示" message:@"文件已经在下载列表中" delegate:nil cancelButtonTitle:@"确定" otherButtonTitles:nil];
-//                [alert show];
-//                return;
-//            }
-//        }
+        for (VMDownloadTask *aTask in self.downloadTasks) {
+            if([aTask.filePath isEqualToString:[resource.url lastPathComponent]]) {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示" message:@"文件已经在下载列表中" delegate:nil cancelButtonTitle:@"确定" otherButtonTitles:nil];
+                [alert show];
+                return;
+            }
+        }
         VMDownloadTask *task = [self.manager enqueueWithRequest:request];
         [self.downloadTasks addObject:task];
         [self.downloadTableView insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:self.downloadTasks.count-1 inSection:0]] withRowAnimation:UITableViewRowAnimationAutomatic];

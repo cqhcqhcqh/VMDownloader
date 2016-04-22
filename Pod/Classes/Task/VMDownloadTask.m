@@ -67,7 +67,7 @@ NSString* const DownloadStateDesc[] = {
 
 @property (readwrite, nonatomic, weak) VMDownloaderManager *downloaderManager;
 @property (readwrite, nonatomic, weak) VMDownloadConfig *downloaderConfig;
-@property (readwrite, nonatomic, weak) NSURLSessionTask *urlSessionDownloadTask;
+@property (readwrite, nonatomic, weak) NSURLConnection *urlConnection;
 
 @property (readwrite, nonatomic, assign) BOOL hasDataChanged;
 @property (readwrite, nonatomic, assign) BOOL needVerify;
@@ -418,13 +418,13 @@ static NSMapTable *CACHE_TASKS_REF;
 - (void)downloadRun
 {
     NSString *filePath = [[self fileDir] stringByAppendingPathComponent:self.filePath];
-    NSError *removeError = nil;
-    if ([[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-        [[NSFileManager defaultManager]removeItemAtPath:filePath error:&removeError];
-        if (removeError) {
-            CPStateMechineLog(@"删除文件出错 %@",removeError.userInfo);
-        }
-    }
+//    NSError *removeError = nil;
+//    if ([[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+//        [[NSFileManager defaultManager]removeItemAtPath:filePath error:&removeError];
+//        if (removeError) {
+//            CPStateMechineLog(@"删除文件出错 %@",removeError.userInfo);
+//        }
+//    }
     __block UInt64 lastDownloadProgress = 0;
     __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
@@ -433,7 +433,7 @@ static NSMapTable *CACHE_TASKS_REF;
     VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
     __weak typeof(self) weakself = self;
     
-    self.urlSessionDownloadTask = [downloadHttp downloadTaskWithRequest:request progress:^(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
+    self.urlConnection = [downloadHttp downloadTaskWithRequest:request progress:^(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
         
         weakself.mProgress = totalBytesWritten;
         weakself.contentLength = totalBytesExpectedToWrite;
@@ -477,7 +477,7 @@ static NSMapTable *CACHE_TASKS_REF;
             [weakself sendMessageType:MessageTypeEventTaskDone];
         }
     }];
-    [self.urlSessionDownloadTask resume];
+//    [self.urlConnection start];
     
 }
 
@@ -623,7 +623,7 @@ static NSMapTable *CACHE_TASKS_REF;
     //在mStarted状态下接受到MessageTypeActionPaused的时候
     //将状态切换到mPaused,此时OnGoing状态将会从状态栈中Exit
     //所以在这个时候处理Paused
-    [self.downloadTask.urlSessionDownloadTask cancel];
+    [self.downloadTask.urlConnection cancel];
 }
 
 - (BOOL)processMessage:(CPMessage *)message

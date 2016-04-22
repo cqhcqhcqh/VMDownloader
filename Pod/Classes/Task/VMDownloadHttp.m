@@ -11,27 +11,26 @@
 typedef NSURL * (^VMURLSessionDownloadTaskDidFinishDownloadingBlock)(NSURLSession *session, NSURLSessionDownloadTask *downloadTask, NSURL *location);
 typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSError *error);
 
-@interface VMDownloadHttp ()<NSURLSessionDataDelegate>
+@interface VMDownloadHttp ()<NSURLConnectionDataDelegate>
 @property (nonatomic, assign)long long totalLength; /**< 总大小 */
 
 @property (nonatomic, assign)long long currentLength; /**< 当前已经下载的大小 */
 
 @property (nonatomic, strong) NSOutputStream *outputStream ; /**< 输出流 */
 
-@property (nonatomic, strong) NSURLSession *session; /**< session */
-
-@property (nonatomic, strong) NSURLSessionDataTask *task; /**< 任务 */
-
 @property (nonatomic, copy) NSString *path; /**< 文件路径 */
 
 @property (readwrite, nonatomic, strong) NSMutableURLRequest *request;
+
 @property (readwrite, nonatomic, copy) VMURLSessionTaskCompletionHandler completionHandler;
 
 @property (readwrite, nonatomic, copy) ProgressBlock downloadProgress;
+
+@property (nonatomic, strong) NSURLConnection *conn;
 @end
 
 @implementation VMDownloadHttp
-- (NSURLSessionDataTask *)downloadTaskWithRequest:(NSURLRequest *)request
+- (NSURLConnection *)downloadTaskWithRequest:(NSURLRequest *)request
                                    progress:(ProgressBlock)downloadProgressBlock
                                 fileURL:(nullable NSString * (^)(NSURLResponse *response))fileURL
                           completionHandler:(nullable void (^)(NSURLResponse *response, NSError * _Nullable error))completionHandler {
@@ -42,35 +41,21 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
     }
     self.request = [NSMutableURLRequest requestWithURL:request.URL];
     self.completionHandler = completionHandler;
-    return self.task;
-}
-
-#pragma mark - lazy
-- (NSURLSession *)session
-{
-    if (!_session) {
-        // 1.创建Session
-#warning delegate会对self有个强引用,注意回收...,防止内存泄露
-        NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-        queue.maxConcurrentOperationCount = 1;
-        _session =  [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:queue];
-    }
-    return _session;
+    return self.conn;
 }
 
 
-
-- (NSURLSessionDataTask *)task
+- (NSURLConnection *)conn
 {
-    if (!_task) {
+    if (!_conn) {
         
         // 设置请求头
         NSString *range = [NSString stringWithFormat:@"bytes=%lld-", [self getFileSizeWithPath:self.path]];
         [self.request setValue:range forHTTPHeaderField:@"Range"];
         [self.request setTimeoutInterval:DownloadTimeOutInterval];
-        _task = [self.session dataTaskWithRequest:self.request];
+        _conn = [NSURLConnection connectionWithRequest:self.request delegate:self];
     }
-    return _task;
+    return _conn;
 }
 
 // 从本地文件中获取已下载文件的大小
@@ -82,13 +67,9 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
 
 #pragma mark - NSURLSessionDataDelegate
 // 接收到服务器的响应时调用
-- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveResponse:(NSURLResponse *)response completionHandler:(void (^)(NSURLSessionResponseDisposition))completionHandler
-{
-    // 告诉系统需要接收数据
-    if (completionHandler) {
-        completionHandler(NSURLSessionResponseAllow);
-    }
 
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
+    
     // 初始化文件总大小
     self.totalLength = response.expectedContentLength + [self getFileSizeWithPath:self.path];
     
@@ -97,9 +78,10 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
     [self.outputStream open];
 }
 
+
 // 接收到服务器返回的数据时调用
 // data 此次接收到的数据
-- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
 //    NSLog(@"didReceiveData %zd",data.length);
     // 累加已经下载的大小
@@ -114,16 +96,22 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
 }
 
 // 请求完毕时调用, 如果error有值, 代表请求错误
-- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
     // 关闭输出流
     [self.outputStream close];
     
     if (self.completionHandler) {
-        self.completionHandler(task.response,error);
+        self.completionHandler(nil,nil);
     }
 }
 
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
+{
+    if (self.completionHandler) {
+        self.completionHandler(nil,error);
+    }
+}
 - (void)dealloc
 {
     NSLog(@"%@ delloc",[self class]);
