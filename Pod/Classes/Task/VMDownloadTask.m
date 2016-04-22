@@ -452,8 +452,7 @@ static NSMapTable *CACHE_TASKS_REF;
         VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
         __weak typeof(self) weakself = self;
         NSFileHandle *writeHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
-        self.urlConnection = [downloadHttp downloadTaskWithRequest:request progress:^(NSData *data, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
-            
+        self.urlConnection = [downloadHttp downloadTaskWithRequest:request progress:^(NSData *data, int64_t totalBytesWritten) {
             weakself.mProgress = totalBytesWritten;
             [writeHandle seekToEndOfFile];
             // 从当前移动的位置(文件尾部)开始写入数据
@@ -462,7 +461,7 @@ static NSMapTable *CACHE_TASKS_REF;
             if (weakself.retryCount != 0) {
                 weakself.retryCount = 0;
             }
-            if (totalBytesWritten < totalBytesExpectedToWrite) {
+            if (totalBytesWritten < weakself.contentLength) {
                 UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
                 
                 UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;
@@ -492,10 +491,6 @@ static NSMapTable *CACHE_TASKS_REF;
                 weakself.error = error.localizedDescription;
                 [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
             }
-            /*else {
-             [weakself sendMessageType:MessageTypeEventTaskDone];
-             }
-             */
         }];
     }
 }

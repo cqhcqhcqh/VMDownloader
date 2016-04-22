@@ -12,7 +12,6 @@ typedef NSURL * (^VMURLSessionDownloadTaskDidFinishDownloadingBlock)(NSURLSessio
 typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSError *error);
 
 @interface VMDownloadHttp ()<NSURLConnectionDataDelegate>
-@property (nonatomic, assign)long long totalLength; /**< 总大小 */
 
 @property (nonatomic, assign)long long currentLength; /**< 当前已经下载的大小 */
 
@@ -78,38 +77,18 @@ typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSErr
 // 接收到服务器的响应时调用
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    
-    // 初始化文件总大小
-    self.totalLength = response.expectedContentLength + [self getFileSizeWithPath:self.path];
-    
-//    // 打开输出流
-//    self.outputStream = [NSOutputStream outputStreamToFileAtPath:self.path append:YES];
-//    [self.outputStream open];
 }
 
-
-// 接收到服务器返回的数据时调用
-// data 此次接收到的数据
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
-//    NSLog(@"didReceiveData %zd",data.length);
-    // 累加已经下载的大小
     self.currentLength += data.length;
-    
     if (self.downloadProgress) {
-        self.downloadProgress(data,self.currentLength,self.totalLength);
+        self.downloadProgress(data,self.currentLength);
     }
-    // 写入数据
-//    [self.outputStream write:data.bytes maxLength:data.length];
-    
 }
 
-// 请求完毕时调用, 如果error有值, 代表请求错误
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    // 关闭输出流
-//    [self.outputStream close];
-    
     if (self.finishDownload) {
         self.finishDownload();
     }

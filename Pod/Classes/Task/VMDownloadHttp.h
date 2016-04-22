@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-typedef void(^ProgressBlock)(NSData* data, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite);
+typedef void(^ProgressBlock)(NSData* data, int64_t totalBytesWritten);
 
 @interface VMDownloadHttp : NSObject
 @property (readwrite, nonatomic, copy) NSString *url;
