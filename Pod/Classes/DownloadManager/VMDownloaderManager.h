@@ -70,6 +70,7 @@
  */
 - (BOOL)verifyMd5WithFilePath:(NSString *)filePath md5Result:(NSString *)md5Result;
 
+//+ (VMDownloadTask *)getTaskById:(NSString *)uuid;
 
 - (void)startDownload;
 - (void)pausedDownload;

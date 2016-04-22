@@ -73,7 +73,9 @@ NSString* const DownloadStateDesc[] = {
 @property (readwrite, nonatomic, assign) BOOL needVerify;
 @property (readwrite, nonatomic, assign) NSInteger retryCount;
 
-//@property (nonatomic, strong) NSFileHandle *writeHandle;
+
+@property (readwrite, nonatomic, assign) BOOL isOnGoing;
+
 
 /**
  *  私有的初始化方法
@@ -442,6 +444,7 @@ static NSMapTable *CACHE_TASKS_REF;
     if (self.mProgress == self.contentLength && self.contentLength != 0) {
         [self sendMessageType:MessageTypeEventTaskDone];
     }else {
+        
         if (![self.downloaderConfig isNetworkAllowedFor:self]) {
             [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException]];
             return;
@@ -453,6 +456,10 @@ static NSMapTable *CACHE_TASKS_REF;
         __weak typeof(self) weakself = self;
         NSFileHandle *writeHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
         self.urlConnection = [downloadHttp downloadTaskWithRequest:request progress:^(NSData *data, int64_t totalBytesWritten) {
+            @synchronized (self) {
+                if(!self.isOnGoing) return;
+            }
+            
             weakself.mProgress = totalBytesWritten;
             [writeHandle seekToEndOfFile];
             // 从当前移动的位置(文件尾部)开始写入数据
@@ -623,7 +630,10 @@ static NSMapTable *CACHE_TASKS_REF;
     self.downloadTask.mState = DownloadTaskStateOngoing;
     [self.downloadTask saveTask];
     
-    [self.downloadTask requestContentLengthRun];
+    @synchronized (self) {
+        self.downloadTask.isOnGoing = YES;
+        [self.downloadTask requestContentLengthRun];
+    }
 }
 
 - (void)exit
@@ -635,7 +645,10 @@ static NSMapTable *CACHE_TASKS_REF;
     //在mStarted状态下接受到MessageTypeActionPaused的时候
     //将状态切换到mPaused,此时OnGoing状态将会从状态栈中Exit
     //所以在这个时候处理Paused
-    [self.downloadTask.urlConnection cancel];
+    @synchronized (self) {
+        self.downloadTask.isOnGoing = NO;
+        [self.downloadTask.urlConnection cancel];
+    }
 }
 
 - (BOOL)processMessage:(CPMessage *)message

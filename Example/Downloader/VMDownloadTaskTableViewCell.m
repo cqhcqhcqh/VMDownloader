@@ -7,6 +7,7 @@
 //
 
 #import "VMDownloadTaskTableViewCell.h"
+
 @import Downloader;
 @implementation VMDownloadTaskTableViewCell
 
@@ -68,4 +69,10 @@
 {
     NSLog(@"%@ -- dealloc",NSStringFromClass([self class]));
 }
+
+- (void)setUuid:(NSString *)uuid
+{
+    _uuid = [uuid copy];
+}
+
 @end
