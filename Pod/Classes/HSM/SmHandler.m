@@ -130,6 +130,7 @@
     [self performTransitions:msgProcessedState message:message];
     CPStateMechineLog(@">>>>>>>>>>>>>>>>>>任务%@------------结束------------\n\n",MessageMapping[message.type]);
     
+    NSAssert(self.handlerDelegate != nil, @"StateMachine is nil");
     if ([self.handlerDelegate respondsToSelector:@selector(smHandlerProcessFinalMessage:)]) {
         [self.handlerDelegate smHandlerProcessFinalMessage:message];
     }
@@ -261,6 +262,7 @@
     StateInfo *curStateInfo = self.stateStack[_stateStackTopIndex];
     CPStateMechineLog(@">>>>curState:%@------EVENT:---%@",[[curStateInfo state] getName],MessageMapping[msg.type]);
     if ([self isQuit:msg]) {
+        NSAssert(self.handlerDelegate != nil, @"StateMachine is nil");
         [self transitionToState:self.handlerDelegate.quittingState];
     }else {
         while (![curStateInfo.state processMessage:msg]) {

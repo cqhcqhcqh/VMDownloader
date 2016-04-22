@@ -91,7 +91,7 @@ NSString* const DownloadStateDesc[] = {
 /**
  *  私有的下载方法
  */
-- (void)requestContentLengthRun;
+- (void)downloadRun;
 
 /**
  *  数据库恢复Task方法,并且主动[task start]
@@ -423,24 +423,9 @@ static NSMapTable *CACHE_TASKS_REF;
     return DirPath;
 }
 
-- (void)requestContentLengthRun
+- (void)downloadRun
 {
     NSString *filePath = [[self fileDir] stringByAppendingPathComponent:self.filePath];
-    if (self.contentLength == 0) {
-        [VMDownloadHttp getHttpHeadWithUrlString:self.url completion:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
-            self.contentLength = response.expectedContentLength;
-            if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-                [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
-            }
-            [self performSelector:@selector(downloadRunWithFilePath:) onThread:self.downloaderManager.downloadTaskRunLoopThread withObject:filePath waitUntilDone:NO modes:@[NSRunLoopCommonModes]];
-        }];
-    }else {
-        [self downloadRunWithFilePath:filePath];
-    }
-}
-
-- (void)downloadRunWithFilePath:(NSString *)filePath
-{
     if (self.mProgress == self.contentLength && self.contentLength != 0) {
         [self sendMessageType:MessageTypeEventTaskDone];
     }else {
@@ -454,17 +439,22 @@ static NSMapTable *CACHE_TASKS_REF;
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
         VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
         __weak typeof(self) weakself = self;
-        NSFileHandle *writeHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
-        self.urlConnection = [downloadHttp downloadTaskWithRequest:request progress:^(NSData *data, int64_t totalBytesWritten) {
-            @synchronized (self) {
-                if(!self.isOnGoing) return;
-            }
+        __block NSFileHandle *writeHandle = nil;
+        self.urlConnection = [downloadHttp downloadTaskWithRequest:request didReceiveResponse:^(NSURLResponse *response) {
             
+            self.contentLength = response.expectedContentLength;
+            if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+                [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
+            }
+            writeHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
+            NSAssert(writeHandle, @"writeHandle is nil");
+        }progress:^(NSData *data, int64_t totalBytesWritten) {
+            NSAssert(writeHandle, @"writeHandle is nil");
             weakself.mProgress = totalBytesWritten;
             [writeHandle seekToEndOfFile];
             // 从当前移动的位置(文件尾部)开始写入数据
             [writeHandle writeData:data];
-            
+#warning 内存警告没有error输出.....
             if (weakself.retryCount != 0) {
                 weakself.retryCount = 0;
             }
@@ -501,6 +491,8 @@ static NSMapTable *CACHE_TASKS_REF;
         }];
     }
 }
+
+
 @end
 
 
@@ -630,10 +622,10 @@ static NSMapTable *CACHE_TASKS_REF;
     self.downloadTask.mState = DownloadTaskStateOngoing;
     [self.downloadTask saveTask];
     
-    @synchronized (self) {
-        self.downloadTask.isOnGoing = YES;
-        [self.downloadTask requestContentLengthRun];
-    }
+//    @synchronized (self) {
+//        self.downloadTask.isOnGoing = YES;
+        [self.downloadTask downloadRun];
+//    }
 }
 
 - (void)exit
@@ -645,10 +637,11 @@ static NSMapTable *CACHE_TASKS_REF;
     //在mStarted状态下接受到MessageTypeActionPaused的时候
     //将状态切换到mPaused,此时OnGoing状态将会从状态栈中Exit
     //所以在这个时候处理Paused
-    @synchronized (self) {
-        self.downloadTask.isOnGoing = NO;
+//    @synchronized (self) {
+//        self.downloadTask.isOnGoing = NO;
+//        NSAssert(self.downloadTask.urlConnection, @"urlConnection is nil");
         [self.downloadTask.urlConnection cancel];
-    }
+//    }
 }
 
 - (BOOL)processMessage:(CPMessage *)message

@@ -8,13 +8,11 @@
 
 #import <Foundation/Foundation.h>
 typedef void(^ProgressBlock)(NSData* data, int64_t totalBytesWritten);
+typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSError *error);
 
 @interface VMDownloadHttp : NSObject
-@property (readwrite, nonatomic, copy) NSString *url;
-@property (readwrite, nonatomic, copy) NSString *fileDestination;
-- (NSURLConnection *)downloadTaskWithRequest:(NSURLRequest *)request
+- (NSURLConnection *)downloadTaskWithRequest:(NSURLRequest *)request didReceiveResponse:(void(^)(NSURLResponse *response))receiveResponse
                                    progress:(ProgressBlock)downloadProgressBlock
                                      fileURL:(nullable NSString * (^)(NSURLResponse *response))fileURL didFinishLoading:(void(^)())finish
                           completionHandler:(nullable void (^)(NSURLResponse *response, NSError * _Nullable error))completionHandler;
-+ (void)getHttpHeadWithUrlString:(NSString *)urlstring completion:(void(^)(NSURLResponse * response,NSData *data, NSError * connectionError))completion;
 @end
