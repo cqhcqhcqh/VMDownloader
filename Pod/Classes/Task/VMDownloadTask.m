@@ -426,7 +426,7 @@ static NSMapTable *CACHE_TASKS_REF;
             if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
                 [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
             }
-            [self downloadRunWithFilePath:filePath];
+            [self performSelector:@selector(downloadRunWithFilePath:) onThread:self.downloaderManager.downloadTaskRunLoopThread withObject:filePath waitUntilDone:NO modes:@[NSRunLoopCommonModes]];
         }];
     }else {
         [self downloadRunWithFilePath:filePath];
@@ -751,7 +751,7 @@ static NSMapTable *CACHE_TASKS_REF;
     NSArray *tasks = self.downloadTask.mDownloading.tasks;
     if([tasks count] < self.downloadTask.downloaderConfig.maxDownloadCount) {
         if([self.tasks firstObject] == self.downloadTask) {
-            if ([ConnectionUtils isNetworkConnected] && [self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
+            if (([ConnectionUtils isNetworkConnected] && [self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) || self.downloadTask.contentLength == 0) {
                 [self.downloadTask transitionToState:self.downloadTask.mOngoing];
             }else {
                 [self.downloadTask transitionToState:self.downloadTask.mRetry];
