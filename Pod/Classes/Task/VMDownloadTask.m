@@ -104,7 +104,7 @@ NSString* const DownloadStateDesc[] = {
 @implementation VMDownloadTask
 - (void)dealloc
 {
-    CPStateMechineLog(@"%@任务 挂了 uuid:%@ %@ dealloc",self.uuid,self.title);
+    CPStateMechineLog(@"%@任务 挂了 uuid:%@ dealloc",self.uuid,self.title);
 }
 + (void)initialize
 {
