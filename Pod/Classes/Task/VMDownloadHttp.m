@@ -9,28 +9,43 @@
 #import "VMDownloadHttp.h"
 #define DownloadTimeOutInterval 15
 
-@interface VMDownloadHttp ()<NSURLConnectionDataDelegate>
+@interface VMDownloadHttp ()<NSURLSessionDataDelegate>
 @property (nonatomic, assign)long long currentLength; /**< 当前已经下载的大小 */
 @property (readwrite, nonatomic, copy) VMURLSessionTaskCompletionHandler completionHandler;
 @property (readwrite, nonatomic, copy) void(^finishDownload) ();
 @property (readwrite, nonatomic, copy) ProgressBlock downloadProgress;
-@property (readwrite, nonatomic, copy) void (^receiveResponse)(NSURLResponse *);
 @end
 
 @implementation VMDownloadHttp
++ (NSURLSessionDataTask *)HEADRequest:(NSURLRequest *)request completionHandler:(void(^)(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error))completionHandler {
+    NSURLSession *session = [NSURLSession sharedSession];
+    NSMutableURLRequest *HEADRequest = [NSMutableURLRequest requestWithURL:request.URL];
+    HEADRequest.HTTPMethod = @"HEAD";
+    NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:HEADRequest completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        if (completionHandler) {
+            completionHandler(data,response,error);
+        }
+    }];
+    [dataTask resume];
+    return dataTask;
+}
 
-- (NSURLConnection *)downloadTaskWithRequest:(NSURLRequest *)request didReceiveResponse:(void (^)(NSURLResponse *))receiveResponse progress:(ProgressBlock)downloadProgressBlock fileURL:(NSString *(^)(NSURLResponse *))fileURL didFinishLoading:(void (^)())finish completionHandler:(void (^)(NSURLResponse *, NSError * _Nullable))completionHandler {
+
+- (NSURLSessionDataTask *)downloadTaskWithRequest:(NSURLRequest *)request progress:(ProgressBlock)downloadProgressBlock fileURL:(nullable NSString * (^)(NSURLResponse *response))fileURL completionHandler:(nullable void (^)(NSURLResponse *response, NSError * _Nullable error))completionHandler {
     self.downloadProgress = downloadProgressBlock;
     if (fileURL) {
         self.currentLength = [self getFileSizeWithPath:fileURL(nil)];
     }
     self.completionHandler = completionHandler;
-    self.finishDownload = finish;
-    self.receiveResponse = receiveResponse;
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:[NSOperationQueue new]];
     NSMutableURLRequest *rangeRequest = [NSMutableURLRequest requestWithURL:request.URL];
     NSString *range = [NSString stringWithFormat:@"bytes=%lld-", self.currentLength];
     [rangeRequest setValue:range forHTTPHeaderField:@"Range"];
     [rangeRequest setTimeoutInterval:DownloadTimeOutInterval];
+    NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:rangeRequest];
+    [dataTask resume];
+    return dataTask;
+    
     NSURLConnection *conn = [NSURLConnection connectionWithRequest:rangeRequest delegate:self];
     return conn;
 }
@@ -44,14 +59,15 @@
 
 #pragma mark - NSURLSessionDataDelegate
 // 接收到服务器的响应时调用
-
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    if (self.receiveResponse) {
-        self.receiveResponse(response);
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveResponse:(NSURLResponse *)response completionHandler:(void (^)(NSURLSessionResponseDisposition))completionHandler
+{
+    // 告诉系统需要接收数据
+    if (completionHandler) {
+        completionHandler(NSURLSessionResponseAllow);
     }
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data
 {
     self.currentLength += data.length;
     if (self.downloadProgress) {
@@ -59,19 +75,14 @@
     }
 }
 
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+// 请求完毕时调用, 如果error有值, 代表请求错误
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
-    if (self.finishDownload) {
-        self.finishDownload();
+    if (self.completionHandler) {
+        self.completionHandler(task.response,error);
     }
 }
 
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
-{
-    if (self.completionHandler) {
-        self.completionHandler(nil,error);
-    }
-}
 - (void)dealloc
 {
     NSLog(@"%@ delloc",[self class]);

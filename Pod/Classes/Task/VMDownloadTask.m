@@ -67,7 +67,7 @@ NSString* const DownloadStateDesc[] = {
 
 @property (readwrite, nonatomic, weak) VMDownloaderManager *downloaderManager;
 @property (readwrite, nonatomic, weak) VMDownloadConfig *downloaderConfig;
-@property (readwrite, nonatomic, weak) NSURLConnection *urlConnection;
+@property (readwrite, nonatomic, weak) NSURLSessionDataTask *urlSessionDataTask;
 
 @property (readwrite, nonatomic, assign) BOOL hasDataChanged;
 @property (readwrite, nonatomic, assign) BOOL needVerify;
@@ -426,73 +426,90 @@ static NSMapTable *CACHE_TASKS_REF;
 - (void)downloadRun
 {
     NSString *filePath = [[self fileDir] stringByAppendingPathComponent:self.filePath];
-    if (self.mProgress == self.contentLength && self.contentLength != 0) {
-        [self sendMessageType:MessageTypeEventTaskDone];
-    }else {
-        
-        if (![self.downloaderConfig isNetworkAllowedFor:self]) {
-            [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException]];
-            return;
-        }
-        __block UInt64 lastDownloadProgress = 0;
-        __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
-        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
-        VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
-        __weak typeof(self) weakself = self;
-        __block NSFileHandle *writeHandle = nil;
-        self.urlConnection = [downloadHttp downloadTaskWithRequest:request didReceiveResponse:^(NSURLResponse *response) {
-            
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
+    __block NSFileHandle *writeHandle = nil;
+    if (self.contentLength == 0) {
+        self.urlSessionDataTask = [VMDownloadHttp HEADRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
             self.contentLength = response.expectedContentLength;
             if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
                 [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
             }
-            writeHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
-            NSAssert(writeHandle, @"writeHandle is nil");
-        }progress:^(NSData *data, int64_t totalBytesWritten) {
-            NSAssert(writeHandle, @"writeHandle is nil");
-            weakself.mProgress = totalBytesWritten;
-            [writeHandle seekToEndOfFile];
-            // 从当前移动的位置(文件尾部)开始写入数据
-            [writeHandle writeData:data];
-#warning 内存警告没有error输出.....
-            if (weakself.retryCount != 0) {
-                weakself.retryCount = 0;
-            }
-            if (totalBytesWritten < weakself.contentLength) {
-                UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
-                
-                UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;
-                
-                UInt64 deltaProgress = totalBytesWritten - lastDownloadProgress;
-                
-                if (deltaTimeInterval >= 1000) {
-                    
-                    weakself.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024);
-                    [weakself sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}] delay:1.0];
-                    lastDownloadProgress = totalBytesWritten;
-                    lastTimeInterval = currentTimeInterval;
-                }
-            }else {
-                
-                [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}]];
-            }
             
-        } fileURL:^NSString *(NSURLResponse *response) {
-            return filePath;
-        } didFinishLoading:^{
-            [writeHandle closeFile];
-            [weakself sendMessageType:MessageTypeEventTaskDone];
-        } completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
-            [writeHandle closeFile];
-            if (error) {
-                weakself.error = error.localizedDescription;
-                [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
-            }
+            [self processDownloadWithFilePath:filePath];
         }];
-    }
+    }else
+        if (self.mProgress == self.contentLength && self.contentLength != 0) {
+            [self sendMessageType:MessageTypeEventTaskDone];
+        }else {
+            [self processDownloadWithFilePath:filePath];
+        }
 }
 
-
+- (void)processDownloadWithFilePath:(NSString *)filePath{
+    
+    @synchronized (self) {
+        if (!_isOnGoing) {
+            return;
+        }
+    }
+    NSFileHandle *writeHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
+    NSAssert(writeHandle, @"writeHandle is nil");
+    if (![self.downloaderConfig isNetworkAllowedFor:self]) {
+        [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException]];
+        return;
+    }
+    __block UInt64 lastDownloadProgress = 0;
+    __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
+    VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
+    __weak typeof(self) weakself = self;
+    
+    self.urlSessionDataTask = [downloadHttp downloadTaskWithRequest:request progress:^(NSData *data, int64_t totalBytesWritten) {
+        if (!_isOnGoing) {
+            return;
+        }
+        
+        NSAssert(writeHandle, @"writeHandle is nil");
+        weakself.mProgress = totalBytesWritten;
+        [writeHandle seekToEndOfFile];
+        // 从当前移动的位置(文件尾部)开始写入数据
+        [writeHandle writeData:data];
+#warning 内存警告没有error输出.....
+        if (weakself.retryCount != 0) {
+            weakself.retryCount = 0;
+        }
+        if (totalBytesWritten < weakself.contentLength) {
+            UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
+            
+            UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;
+            
+            UInt64 deltaProgress = totalBytesWritten - lastDownloadProgress;
+            
+            if (deltaTimeInterval >= 1000) {
+                
+                weakself.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024);
+                [weakself sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}] delay:1.0];
+                lastDownloadProgress = totalBytesWritten;
+                lastTimeInterval = currentTimeInterval;
+            }
+        }else {
+            
+            [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}]];
+        }
+        
+    } fileURL:^NSString *(NSURLResponse *response) {
+        return filePath;
+    }  completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
+        [writeHandle closeFile];
+        if (error) {
+            weakself.error = error.localizedDescription;
+            [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
+        }else {
+            [writeHandle closeFile];
+            [weakself sendMessageType:MessageTypeEventTaskDone];
+        }
+    }];
+}
 @end
 
 
@@ -622,10 +639,10 @@ static NSMapTable *CACHE_TASKS_REF;
     self.downloadTask.mState = DownloadTaskStateOngoing;
     [self.downloadTask saveTask];
     
-//    @synchronized (self) {
-//        self.downloadTask.isOnGoing = YES;
+    @synchronized (self) {
+        self.downloadTask.isOnGoing = YES;
         [self.downloadTask downloadRun];
-//    }
+    }
 }
 
 - (void)exit
@@ -637,11 +654,11 @@ static NSMapTable *CACHE_TASKS_REF;
     //在mStarted状态下接受到MessageTypeActionPaused的时候
     //将状态切换到mPaused,此时OnGoing状态将会从状态栈中Exit
     //所以在这个时候处理Paused
-//    @synchronized (self) {
-//        self.downloadTask.isOnGoing = NO;
-//        NSAssert(self.downloadTask.urlConnection, @"urlConnection is nil");
-        [self.downloadTask.urlConnection cancel];
-//    }
+    @synchronized (self) {
+        self.downloadTask.isOnGoing = NO;
+        //        NSAssert(self.downloadTask.urlSessionDataTask, @"urlSessionDataTask is nil");
+        [self.downloadTask.urlSessionDataTask cancel];
+    }
 }
 
 - (BOOL)processMessage:(CPMessage *)message

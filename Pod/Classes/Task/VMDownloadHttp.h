@@ -11,8 +11,7 @@ typedef void(^ProgressBlock)(NSData* data, int64_t totalBytesWritten);
 typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSError *error);
 
 @interface VMDownloadHttp : NSObject
-- (NSURLConnection *)downloadTaskWithRequest:(NSURLRequest *)request didReceiveResponse:(void(^)(NSURLResponse *response))receiveResponse
-                                   progress:(ProgressBlock)downloadProgressBlock
-                                     fileURL:(nullable NSString * (^)(NSURLResponse *response))fileURL didFinishLoading:(void(^)())finish
-                          completionHandler:(nullable void (^)(NSURLResponse *response, NSError * _Nullable error))completionHandler;
+- (NSURLSessionDataTask *)downloadTaskWithRequest:(NSURLRequest *)request progress:(ProgressBlock)downloadProgressBlock fileURL:(nullable NSString * (^)(NSURLResponse *response))fileURL completionHandler:(nullable void (^)(NSURLResponse *response, NSError * _Nullable error))completionHandler;
+
++ (NSURLSessionDataTask *)HEADRequest:(NSURLRequest *)request completionHandler:(void(^)(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error))completionHandler;
 @end
