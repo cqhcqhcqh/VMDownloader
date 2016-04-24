@@ -81,6 +81,7 @@
     if (self.completionHandler) {
         self.completionHandler(task.response,error);
     }
+    [session finishTasksAndInvalidate];
 }
 
 - (void)dealloc

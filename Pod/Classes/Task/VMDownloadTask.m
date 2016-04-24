@@ -430,19 +430,21 @@ static NSMapTable *CACHE_TASKS_REF;
     __block NSFileHandle *writeHandle = nil;
     if (self.contentLength == 0) {
         self.urlSessionDataTask = [VMDownloadHttp HEADRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-            self.contentLength = response.expectedContentLength;
-            if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-                [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
+            if (error) {
+                [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
+            }else {
+                self.contentLength = response.expectedContentLength;
+                if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+                    [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
+                }
+                [self processDownloadWithFilePath:filePath];
             }
-            
-            [self processDownloadWithFilePath:filePath];
         }];
-    }else
-        if (self.mProgress == self.contentLength && self.contentLength != 0) {
-            [self sendMessageType:MessageTypeEventTaskDone];
-        }else {
-            [self processDownloadWithFilePath:filePath];
-        }
+    }else if (self.mProgress == self.contentLength) {
+        [self sendMessageType:MessageTypeEventTaskDone];
+    }else {
+        [self processDownloadWithFilePath:filePath];
+    }
 }
 
 - (void)processDownloadWithFilePath:(NSString *)filePath{
