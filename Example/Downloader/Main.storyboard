@@ -17,26 +17,15 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="S9x-RG-hLT">
-                                <rect key="frame" x="0.0" y="80" width="120" height="488"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="120" id="o4y-GY-IUF"/>
-                                </constraints>
-                                <connections>
-                                    <outlet property="dataSource" destination="whP-gf-Uak" id="rpc-tr-QVG"/>
-                                    <outlet property="delegate" destination="whP-gf-Uak" id="uIt-k3-Pu3"/>
-                                </connections>
-                            </tableView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4fi-dC-Geq">
-                                <rect key="frame" x="35" y="40" width="63" height="30"/>
+                                <rect key="frame" x="35" y="45" width="63" height="30"/>
                                 <state key="normal" title="正确MD5"/>
                                 <connections>
                                     <action selector="getCorrectMD5ResourceList:" destination="whP-gf-Uak" eventType="touchUpInside" id="Bu5-K2-MIY"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="oZt-mL-qPJ">
-                                <rect key="frame" x="216" y="40" width="63" height="30"/>
+                                <rect key="frame" x="216" y="45" width="63" height="30"/>
                                 <state key="normal" title="错误MD5"/>
                                 <connections>
                                     <action selector="getErrorMD5ResourceList:" destination="whP-gf-Uak" eventType="touchUpInside" id="zfo-1o-nBC"/>
@@ -164,37 +153,55 @@
                                     <outlet property="delegate" destination="whP-gf-Uak" id="4PJ-qh-ufI"/>
                                 </connections>
                             </tableView>
-                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="I3w-MW-kTB">
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="I3w-MW-kTB">
                                 <rect key="frame" x="93" y="10" width="51" height="31"/>
                                 <connections>
                                     <action selector="swithChange:" destination="whP-gf-Uak" eventType="valueChanged" id="np8-BQ-GtY"/>
                                 </connections>
                             </switch>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="允许3G/4G" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PKs-Bf-lAi">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="允许3G/4G" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PKs-Bf-lAi">
                                 <rect key="frame" x="150" y="15" width="85" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="S9x-RG-hLT">
+                                <rect key="frame" x="0.0" y="80" width="120" height="488"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="120" id="o4y-GY-IUF"/>
+                                </constraints>
+                                <connections>
+                                    <outlet property="dataSource" destination="whP-gf-Uak" id="rpc-tr-QVG"/>
+                                    <outlet property="delegate" destination="whP-gf-Uak" id="uIt-k3-Pu3"/>
+                                </connections>
+                            </tableView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="oZt-mL-qPJ" firstAttribute="top" secondItem="4fi-dC-Geq" secondAttribute="top" id="63Q-ql-yKy"/>
                             <constraint firstItem="S9x-RG-hLT" firstAttribute="top" secondItem="TpU-gO-2f1" secondAttribute="top" constant="80" id="7Cj-aR-pfk"/>
+                            <constraint firstItem="I3w-MW-kTB" firstAttribute="leading" secondItem="TpU-gO-2f1" secondAttribute="leading" constant="93" id="8As-T0-gE8"/>
+                            <constraint firstItem="PKs-Bf-lAi" firstAttribute="top" secondItem="TpU-gO-2f1" secondAttribute="top" constant="15" id="D2d-QM-9fV"/>
                             <constraint firstItem="A4B-Md-pXx" firstAttribute="bottom" secondItem="S9x-RG-hLT" secondAttribute="bottom" id="FuL-kM-TUN"/>
                             <constraint firstItem="S9x-RG-hLT" firstAttribute="leading" secondItem="TpU-gO-2f1" secondAttribute="leading" id="FyJ-CX-26k"/>
                             <constraint firstItem="Mvr-aV-6Um" firstAttribute="top" secondItem="S9x-RG-hLT" secondAttribute="bottom" id="Gmy-2S-czv"/>
-                            <constraint firstItem="4fi-dC-Geq" firstAttribute="top" secondItem="uEw-UM-LJ8" secondAttribute="bottom" constant="20" id="Pb5-NQ-ubh"/>
+                            <constraint firstItem="A4B-Md-pXx" firstAttribute="top" secondItem="I3w-MW-kTB" secondAttribute="bottom" constant="39" id="Jmh-Zg-oGN"/>
+                            <constraint firstItem="oZt-mL-qPJ" firstAttribute="top" secondItem="PKs-Bf-lAi" secondAttribute="bottom" constant="9" id="PFq-Hs-ydS"/>
+                            <constraint firstItem="4fi-dC-Geq" firstAttribute="top" secondItem="uEw-UM-LJ8" secondAttribute="bottom" constant="25" id="Pb5-NQ-ubh"/>
                             <constraint firstItem="A4B-Md-pXx" firstAttribute="leading" secondItem="S9x-RG-hLT" secondAttribute="trailing" constant="-1" id="QDE-ni-Xnj"/>
                             <constraint firstAttribute="trailing" secondItem="A4B-Md-pXx" secondAttribute="trailing" id="YYn-4v-NDY"/>
+                            <constraint firstItem="PKs-Bf-lAi" firstAttribute="leading" secondItem="I3w-MW-kTB" secondAttribute="trailing" constant="8" id="d1z-yG-oc4"/>
                             <constraint firstItem="4fi-dC-Geq" firstAttribute="centerX" secondItem="TpU-gO-2f1" secondAttribute="centerX" constant="-93.5" id="d7t-eU-TZv"/>
                             <constraint firstItem="A4B-Md-pXx" firstAttribute="top" secondItem="S9x-RG-hLT" secondAttribute="top" id="oeR-8U-NKf"/>
                             <constraint firstItem="oZt-mL-qPJ" firstAttribute="centerX" secondItem="TpU-gO-2f1" secondAttribute="centerX" constant="87" id="p9c-VW-pzY"/>
                             <constraint firstItem="oZt-mL-qPJ" firstAttribute="bottom" secondItem="4fi-dC-Geq" secondAttribute="bottom" id="ubf-uc-35V"/>
+                            <constraint firstItem="I3w-MW-kTB" firstAttribute="top" secondItem="TpU-gO-2f1" secondAttribute="top" constant="10" id="yWT-ow-geJ"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="downloadTableView" destination="A4B-Md-pXx" id="LIw-e9-3Un"/>
+                        <outlet property="mobileSwith" destination="I3w-MW-kTB" id="j77-FN-aVb"/>
                         <outlet property="resourceTableView" destination="S9x-RG-hLT" id="PCU-yi-viE"/>
                     </connections>
                 </viewController>

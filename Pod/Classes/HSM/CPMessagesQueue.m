@@ -10,7 +10,8 @@
 #import "CPMessageOperation.h"
 
 @interface CPMessagesQueue ()
-@property (atomic ,strong) CPMessageOperation *lastOperation;
+@property (nonatomic ,strong) CPMessageOperation *lastOperation;
+@property (readwrite, nonatomic, strong) CPMessageOperation *excutingOperation;
 @end
 
 @implementation CPMessagesQueue
@@ -31,32 +32,26 @@
     if (self.lastOperation) {
         [op addDependency:self.lastOperation];
     }
-    
-    self.lastOperation = op;
+    @synchronized (self) {
+        self.lastOperation = op;
+    }
     [super addOperation:op];
 }
 
 
 - (void)addOperationAtFrontOfQueue:(CPMessage *)message {
-    //EVENT_REPEAT_CONNECT
-    //EVENT_INTERUPT
     CPMessageOperation *op = [CPMessageOperation sendMessageOperationWithTask:message];
     op.runloopThread = self.runloopThread;
     op.delegate = self;
     
     NSArray *operations = self.operations;
     [operations enumerateObjectsUsingBlock:^(CPMessageOperation* operation, NSUInteger idx, BOOL *stop) {
-        
         if([operation isExecuting]){
-            
             [op addDependency:operation];
-            
         }else{
-            
             [operation addDependency:op];
         }
     }];
-    
     [super addOperation:op];
 }
 
@@ -80,11 +75,13 @@
     if (self.lastOperation) {
         [op addDependency:self.lastOperation];
     }
-    self.lastOperation = op;
+    @synchronized (self) {
+        self.lastOperation = op;
+    }
     [super addOperation:op];
-
-    
 }
+
+
 - (void)sendMessageOperation:(CPMessageOperation *)operation didFinishSendMessage:(CPMessage *)message {
 
 }

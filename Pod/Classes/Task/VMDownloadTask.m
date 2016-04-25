@@ -731,7 +731,20 @@ static NSMapTable *CACHE_TASKS_REF;
     switch (message.type) {
         case MessageTypeActionStart:
             if (![self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
-                [CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:message.type message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
+//                [CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:message.type message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
+                [self.downloadTask transitionToState:self.downloadTask.mPaused];
+                return YES;
+                if (![ConnectionUtils isNetworkConnected]) {
+                    CPStateMechineLog(@"没有网络");
+                    self.downloadTask.error = @"没有网络";
+                    [self.downloadTask saveTask];
+                }else {
+                    [CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:message.type message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
+                    CPStateMechineLog(@"网络不允许");
+                    self.downloadTask.error = @"网络不允许";
+                    [self.downloadTask saveTask];
+                }
+                
                 return YES;
             }
             /*
@@ -756,7 +769,7 @@ static NSMapTable *CACHE_TASKS_REF;
                         [self.downloadTask transitionToState:self.downloadTask.mIOError];
                     }
                 }
-            }else {
+            } else {
                 CPStateMechineLog(@"多次重试都失败");
                 self.downloadTask.error = @"多次重试都失败";
                 [self.downloadTask saveTask];

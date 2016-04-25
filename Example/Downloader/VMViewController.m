@@ -10,6 +10,7 @@
 #import "VMVideoResource.h"
 #import "VMDownloadTaskTableViewCell.h"
 #import "VMMoviePlayerViewController.h"
+#import "UIAlertView+Blocks.h"
 
 @import Downloader;
 @interface VMViewController ()<UITableViewDelegate,UITableViewDataSource,UIActionSheetDelegate>
@@ -21,6 +22,7 @@
 @property (readwrite, nonatomic, assign) NSInteger selectedRow;
 @property (readwrite, nonatomic, strong) NSMutableArray *videoResources;
 @property (readwrite, nonatomic, strong) NSMutableArray *downloadTasks;
+@property (weak, nonatomic) IBOutlet UISwitch *mobileSwith;
 @end
 
 @implementation VMViewController
@@ -81,8 +83,20 @@ typedef NS_ENUM(NSUInteger, Command) {
 - (void)networkNotPermission:(NSNotification *)note{
     CPNoteMessage *msg = note.object;
     if(msg.type == MessageTypeActionStart) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示" message:@"网络状态不允许" delegate:nil cancelButtonTitle:@"确定" otherButtonTitles:nil];
-        [alert show];
+        [UIAlertView showWithTitle:@"提示" message:@"网络状态不允许,是否打开3/4G网络开关?" cancelButtonTitle:@"取消" otherButtonTitles:@[@"确定"] tapBlock:^(UIAlertView * _Nonnull alertView, NSInteger buttonIndex) {
+            if (buttonIndex == 1) {
+                VMDownloadTask *task = msg.obj;
+                if ([self.downloadTasks containsObject:task]) {
+                    task.allowMobileNetWork = YES;
+                    if (!self.mobileSwith.isOn) {
+                        self.mobileSwith.on = YES;
+                        [self swithChange:self.mobileSwith];
+                    }
+                    NSInteger row = [self.downloadTasks indexOfObject:task];
+                    [self.downloadTableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:row inSection:0]] withRowAnimation:UITableViewRowAnimationAutomatic];
+                }
+            }
+        }];
     }
 }
 
@@ -217,9 +231,16 @@ typedef NS_ENUM(NSUInteger, Command) {
             //        UIActionSheet *actionsheet = [[UIActionSheet alloc] initWithTitle:@"是否删除任务对应的文件" delegate:self cancelButtonTitle:@"取消" destructiveButtonTitle:@"删除" otherButtonTitles:nil];
             //        [actionsheet showInView:self.view];
             VMDownloadTask *task = self.downloadTasks[indexPath.row];
-            [self.downloadTasks removeObject:task];
-            [task deleteTaskIncludeFile:YES];
-            [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+            [UIAlertView showWithTitle:@"提示" message:@"是否删除任务对应的文件" cancelButtonTitle:@"取消" otherButtonTitles:@[@"确定"] tapBlock:^(UIAlertView * _Nonnull alertView, NSInteger buttonIndex) {
+                NSLog(@"buttonIndex %zd",buttonIndex);
+                if (1 == buttonIndex) {
+                    [task deleteTaskIncludeFile:YES];
+                }else {
+                    [task deleteTaskIncludeFile:NO];
+                }
+                [self.downloadTasks removeObject:task];
+                [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+            }];
         }
     }
 }
