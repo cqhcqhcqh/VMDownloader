@@ -427,12 +427,14 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     NSString *filePath = [[self fileDir] stringByAppendingPathComponent:self.filePath];
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
-    __block NSFileHandle *writeHandle = nil;
     if (self.contentLength == 0) {
+        CPStateMechineLog(@"获取请求头 %s %zd",__PRETTY_FUNCTION__, __LINE__);
         self.urlSessionDataTask = [VMDownloadHttp HEADRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+            
             if (error) {
                 [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
             }else {
+                CPStateMechineLog(@"获取请求头成功 %s %zd",__PRETTY_FUNCTION__, __LINE__);
                 self.contentLength = response.expectedContentLength;
                 if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
                     [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
@@ -451,15 +453,18 @@ static NSMapTable *CACHE_TASKS_REF;
     
     @synchronized (self) {
         if (!_isOnGoing) {
+            CPStateMechineLog(@"urlSessionDataTask has cancel %s %zd",__PRETTY_FUNCTION__, __LINE__);
             return;
         }
     }
     NSFileHandle *writeHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
     NSAssert(writeHandle, @"writeHandle is nil");
     if (![self.downloaderConfig isNetworkAllowedFor:self]) {
+        CPStateMechineLog(@"网络不允许下载 %s %zd",__PRETTY_FUNCTION__, __LINE__);
         [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException]];
         return;
     }
+    CPStateMechineLog(@"获取下载内容 %s %zd",__PRETTY_FUNCTION__, __LINE__);
     __block UInt64 lastDownloadProgress = 0;
     __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];

@@ -21,6 +21,7 @@
     NSURLSession *session = [NSURLSession sharedSession];
     NSMutableURLRequest *HEADRequest = [NSMutableURLRequest requestWithURL:request.URL];
     HEADRequest.HTTPMethod = @"HEAD";
+    [HEADRequest setTimeoutInterval:DownloadTimeOutInterval];
     NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:HEADRequest completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         if (completionHandler) {
             completionHandler(data,response,error);
@@ -46,8 +47,8 @@
     [dataTask resume];
     return dataTask;
     
-    NSURLConnection *conn = [NSURLConnection connectionWithRequest:rangeRequest delegate:self];
-    return conn;
+//    NSURLConnection *conn = [NSURLConnection connectionWithRequest:rangeRequest delegate:self];
+//    return conn;
 }
 
 // 从本地文件中获取已下载文件的大小
