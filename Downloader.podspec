@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = "Downloader"
-  s.version          = "0.0.8"
+  s.version          = "0.0.9"
   s.summary          = "这是我们的第一个支持本地私有库<Downloader>,请大家多多关照,多给建议和支持"
 
 # This description is used to generate tags and improve search results.
@@ -38,6 +38,6 @@ Pod::Spec.new do |s|
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
     s.dependency 'FMDB'
-    s.dependency 'AFNetworking', '~> 3.0'
+  # s.dependency 'AFNetworking', '~> 3.0'
   # s.dependency 'StateMachine', '~> 0.3.0'
 end
