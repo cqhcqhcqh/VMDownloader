@@ -1,16 +1,16 @@
 {
   "name": "Downloader",
-  "version": "0.1.0",
-  "summary": "A short description of Downloader.",
-  "description": "",
-  "homepage": "https://github.com/<GITHUB_USERNAME>/Downloader",
+  "version": "0.0.9",
+  "summary": "这是我们的第一个支持本地私有库<Downloader>,请大家多多关照,多给建议和支持",
+  "description": "A description of the Pod more detailed than the summary. 就是对当前lib的详细功能的详细描述吧。我猜的",
+  "homepage": "https://chengqihan@git.vmovier.cc/scm/~chengqihan/downloaderlib",
   "license": "MIT",
   "authors": {
     "chengqihan": "chengqihan@vmovier.com"
   },
   "source": {
-    "git": "https://github.com/<GITHUB_USERNAME>/Downloader.git",
-    "tag": "0.1.0"
+    "git": "https://chengqihan@git.vmovier.cc/scm/~chengqihan/downloaderlib.git",
+    "tag": "0.0.9"
   },
   "platforms": {
     "ios": "7.0"
@@ -22,12 +22,10 @@
       "Pod/Assets/*.png"
     ]
   },
+  "prefix_header_file": "Example/Pods/Target Support Files/Downloader/Downloader-prefix.pch",
   "dependencies": {
     "FMDB": [
 
-    ],
-    "AFNetworking": [
-      "~> 3.0"
     ]
   }
 }

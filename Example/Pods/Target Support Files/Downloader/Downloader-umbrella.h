@@ -16,6 +16,7 @@
 #import "CPNotificationManager.h"
 #import "ConnectionUtils.h"
 #import "Reachability.h"
+#import "VMDownloadHttp.h"
 #import "VMDownloadTask.h"
 
 FOUNDATION_EXPORT double DownloaderVersionNumber;

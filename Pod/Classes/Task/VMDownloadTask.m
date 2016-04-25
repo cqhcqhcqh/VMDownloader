@@ -11,7 +11,6 @@
 #import "VMDownloaderManager.h"
 #import "ConnectionUtils.h"
 #import "NSString+MD5.h"
-#import "AFNetworking.h"
 #import "CPLoggerManager.h"
 #import "FMDB.h"
 #import "DownloaderDao.h"
