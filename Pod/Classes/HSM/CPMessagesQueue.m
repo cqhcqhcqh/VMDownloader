@@ -82,8 +82,6 @@
 }
 
 
-- (void)sendMessageOperation:(CPMessageOperation *)operation didFinishSendMessage:(CPMessage *)message {
-
-}
+- (void)sendMessageOperation:(CPMessageOperation *)operation didFinishSendMessage:(CPMessage *)message {}
 @end
 

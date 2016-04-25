@@ -465,7 +465,7 @@ static NSMapTable *CACHE_TASKS_REF;
         return;
     }
     CPStateMechineLog(@"获取下载内容 %s %zd",__PRETTY_FUNCTION__, __LINE__);
-    __block UInt64 lastDownloadProgress = 0;
+    __block UInt64 lastDownloadProgress = self.mProgress;
     __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
     VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
