@@ -17,12 +17,11 @@
 @property (readwrite, nonatomic, strong) VMDownloaderManager *manager;
 @property (weak, nonatomic) IBOutlet UITableView *downloadTableView;
 @property (weak, nonatomic) IBOutlet UITableView *resourceTableView;
-
+@property (weak, nonatomic) IBOutlet UISwitch *mobileSwith;
 @property (readwrite, nonatomic, strong) NSArray *orders;
 @property (readwrite, nonatomic, assign) NSInteger selectedRow;
 @property (readwrite, nonatomic, strong) NSMutableArray *videoResources;
 @property (readwrite, nonatomic, strong) NSMutableArray *downloadTasks;
-@property (weak, nonatomic) IBOutlet UISwitch *mobileSwith;
 @end
 
 @implementation VMViewController
@@ -34,13 +33,6 @@
     }
     return _videoResources;
 }
-
-typedef NS_ENUM(NSUInteger, Command) {
-    CommandStart = 0,
-    CommandPaused,
-    CommandRetry,
-    CommandDelete
-};
 
 - (IBAction)getCorrectMD5ResourceList:(UIButton *)sender {
     NSURLRequest *request = [[NSURLRequest alloc] initWithURL:[NSURL URLWithString:@"http://service.cc.vmovier.com/Magicapi/Test/testForYe_movier"]];
