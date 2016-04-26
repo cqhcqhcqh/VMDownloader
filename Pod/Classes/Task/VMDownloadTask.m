@@ -101,7 +101,7 @@ NSString* const DownloadStateDesc[] = {
  *
  *  @return Task
  */
-- (instancetype)initWithRunloopThread:(NSThread *)thread key:(NSString *)key resultSet:(FMResultSet *)resultSet;
+- (instancetype)initWithRunloopThread:(NSThread *)thread key:(NSString *)key resultSet:(FMResultSet *)resultSet autoStart:(BOOL)autoStart;
 @end
 
 @implementation VMDownloadTask

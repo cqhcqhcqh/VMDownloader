@@ -36,24 +36,6 @@
 
 @implementation VMDownloaderManager
 
-- (void)startDownload {
-    CPMessage *msg = [[CPMessage alloc] initWithType:MessageTypeActionDelete];
-    //    [self.downloader sendMessage:msg];
-}
-- (void)pausedDownload {
-    CPMessage *msg = [[CPMessage alloc] initWithType:MessageTypeActionPaused];
-    //    [self.downloader sendMessage:msg];
-    
-}
-- (void)retryDownload {
-    CPMessage *msg = [[CPMessage alloc] initWithType:MessageTypeActionStart];
-    //    [self.downloader sendMessage:msg];
-}
-
-- (void)deleteDownload {
-    CPMessage *msg = [[CPMessage alloc] initWithType:MessageTypeActionDelete];
-    //    [self.downloader sendMessage:msg];
-}
 
 
 #pragma mark -- 根据指定key获取dictionary对应的value(Manager)

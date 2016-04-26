@@ -72,8 +72,4 @@
 
 //+ (VMDownloadTask *)getTaskById:(NSString *)uuid;
 
-- (void)startDownload;
-- (void)pausedDownload;
-- (void)retryDownload;
-- (void)deleteDownload;
 @end
