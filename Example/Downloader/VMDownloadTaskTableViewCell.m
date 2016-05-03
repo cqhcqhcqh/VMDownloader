@@ -61,6 +61,10 @@
     }
     
 }
+- (void)awakeFromNib
+{
+    
+}
 - (IBAction)swithValueChange:(UISwitch *)sender {
     [self.task setAllowMobileNetWork:sender.isOn];
 }

@@ -30,4 +30,8 @@
 {
     return UIInterfaceOrientationMaskLandscape;
 }
+- (void)dealloc
+{
+    
+}
 @end
