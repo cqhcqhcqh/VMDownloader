@@ -54,5 +54,14 @@
  */
 + (NSArray *)recoverTasksWithThread:(NSThread *)thread key:(NSString *)key miniState:(int)miniState;
 
-+ (VMDownloadTask *)getDownloadTaskById:(NSString *)uuid;
+/**
+ *  从数据库中恢复指定uuid的任务
+ *
+ *  @param thread    任务所在的线程
+ *  @param key       Manager对应的key
+ *  @param uuid      Task的唯一身份ID
+ *
+ *  @return Tasks
+ */
++ (NSArray *)getDownloadTaskById:(NSString *)uuid thread:(NSThread *)thread key:(NSString *)key;
 @end

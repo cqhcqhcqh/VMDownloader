@@ -103,15 +103,16 @@ static FMDatabase *database;
     DatabaseLog(@"删除下载任务 uuid:%@ %@",uuid,deleteSuccess?@"成功":@"失败");
 }
 
-+ (VMDownloadTask *)getDownloadTaskById:(NSString *)uuid thread:(NSThread *)thread key:(NSString *)key{
++ (NSArray *)getDownloadTaskById:(NSString *)uuid thread:(NSThread *)thread key:(NSString *)key{
     FMResultSet *resultSet = [database executeQuery:@"SELECT * from t_downloads where _id = ?",uuid];
-    NSString *log = [NSString stringWithFormat:@"恢复[完]任务:[\n"];
-    VMDownloadTask *task = nil;
+    NSMutableArray *array = [NSMutableArray array];
+    NSString *log = [NSString stringWithFormat:@"恢复[完]数据库中id=%@的Task:[\n",uuid];
     while ([resultSet next]) {
-        task = [VMDownloadTask recoveryDownloadTaskWithRunloopThread:thread key:key resultSet:resultSet autoStart:YES];
+        VMDownloadTask *task = [VMDownloadTask recoveryDownloadTaskWithRunloopThread:thread key:key resultSet:resultSet autoStart:YES];
         log = [log stringByAppendingFormat:@"%@状态的任务 state %@ title:%@ uuid:%@,\n",DownloadStateDesc[task.mState],DownloadStateDesc[task.mState],task.title,task.uuid];
+        [array addObject:task];
     }
     DatabaseLog(@"%@]",log);
-    return task;
+    return array;
 }
 @end
