@@ -68,7 +68,8 @@ static FMDatabase *database;
     
 }
 
-+ (NSArray *)recoverWorkingTasksWithThread:(NSThread *)thread key:(NSString *)key{
++ (NSArray *)recoverWorkingTasksWithThread:(NSThread *)thread key:(NSString *)key
+{
     FMResultSet *resultSet = [database executeQuery:@"SELECT * from t_downloads where state <= ?",@(DownloadTaskStateVerifying)];
     NSMutableArray *array = [NSMutableArray array];
     NSString *log = [NSString stringWithFormat:@"恢复[完]中断的下载任务:[\n"];
@@ -81,7 +82,8 @@ static FMDatabase *database;
     return array;
 }
 
-+ (NSArray *)recoverTasksWithThread:(NSThread *)thread key:(NSString *)key miniState:(int)miniState {
++ (NSArray *)recoverTasksWithThread:(NSThread *)thread key:(NSString *)key miniState:(int)miniState
+{
     FMResultSet *resultSet = [database executeQuery:@"SELECT * from t_downloads where state > ?",@(miniState)];
     NSMutableArray *array = [NSMutableArray array];
     NSString *log = [NSString stringWithFormat:@"恢复[完] 数据库中的State>0的所有Task:[\n"];
@@ -99,5 +101,17 @@ static FMDatabase *database;
 {
     BOOL deleteSuccess =[database executeUpdate:@"DELETE FROM t_downloads WHERE _id = ?",uuid];
     DatabaseLog(@"删除下载任务 uuid:%@ %@",uuid,deleteSuccess?@"成功":@"失败");
+}
+
++ (VMDownloadTask *)getDownloadTaskById:(NSString *)uuid thread:(NSThread *)thread key:(NSString *)key{
+    FMResultSet *resultSet = [database executeQuery:@"SELECT * from t_downloads where _id = ?",uuid];
+    NSString *log = [NSString stringWithFormat:@"恢复[完]任务:[\n"];
+    VMDownloadTask *task = nil;
+    while ([resultSet next]) {
+        task = [VMDownloadTask recoveryDownloadTaskWithRunloopThread:thread key:key resultSet:resultSet autoStart:YES];
+        log = [log stringByAppendingFormat:@"%@状态的任务 state %@ title:%@ uuid:%@,\n",DownloadStateDesc[task.mState],DownloadStateDesc[task.mState],task.title,task.uuid];
+    }
+    DatabaseLog(@"%@]",log);
+    return task;
 }
 @end

@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+@class VMDownloadTask;
 
 @interface DownloaderDao : NSObject
 /**
@@ -52,4 +53,6 @@
  *  @return Tasks
  */
 + (NSArray *)recoverTasksWithThread:(NSThread *)thread key:(NSString *)key miniState:(int)miniState;
+
++ (VMDownloadTask *)getDownloadTaskById:(NSString *)uuid;
 @end
