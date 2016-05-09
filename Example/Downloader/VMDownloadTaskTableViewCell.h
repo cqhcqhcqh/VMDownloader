@@ -21,6 +21,6 @@
 @property (weak, nonatomic) IBOutlet UILabel *speedLabel;
 @property (weak, nonatomic) IBOutlet UILabel *percentLabel;
 
-@property (readwrite, nonatomic, strong) VMDownloadTask *task;
+@property (readwrite, nonatomic, weak) VMDownloadTask *task;
 @property (readwrite, nonatomic, copy) NSString *uuid;
 @end

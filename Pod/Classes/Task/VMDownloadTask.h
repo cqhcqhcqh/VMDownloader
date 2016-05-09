@@ -70,8 +70,6 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
 @property (readwrite, nonatomic, copy) NSString *title;
 
 @property (readwrite, nonatomic, copy) NSString *mimetype;
-
-@property (readwrite, nonatomic, copy) NSString *mid;
 @end
 
 

@@ -178,12 +178,8 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     VMDownloaderManager *manager = [VMDownloaderManager getInstanceWithKey:key];
     NSAssert(manager != NULL, @"DownloadManager is null for key=%@",key);
-    NSString *uuid = nil;
-    if (request.mid.length && request.mid) {
-        uuid = request.mid;
-    }else {
-        uuid = [[NSUUID UUID] UUIDString];
-    }
+    
+    NSString *uuid = [[NSUUID UUID] UUIDString];
     VMDownloadTask * task = [self initWithRunloopThread:thread uuid:uuid downloadManager:manager];
     task.url = request.url;
     task.mMd5 = request.MD5Value;
@@ -473,7 +469,6 @@ static NSMapTable *CACHE_TASKS_REF;
     __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
     VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
-    __weak typeof(self) weakself = self;
     
     self.urlSessionDataTask = [downloadHttp downloadTaskWithRequest:request progress:^(NSData *data, int64_t totalBytesWritten) {
         if (!_isOnGoing) {
@@ -481,15 +476,15 @@ static NSMapTable *CACHE_TASKS_REF;
         }
         
         NSAssert(writeHandle, @"writeHandle is nil");
-        weakself.mProgress = totalBytesWritten;
+        self.mProgress = totalBytesWritten;
         [writeHandle seekToEndOfFile];
         // 从当前移动的位置(文件尾部)开始写入数据
         [writeHandle writeData:data];
 #warning 内存警告没有error输出.....
-        if (weakself.retryCount != 0) {
-            weakself.retryCount = 0;
+        if (self.retryCount != 0) {
+            self.retryCount = 0;
         }
-        if (totalBytesWritten < weakself.contentLength) {
+        if (totalBytesWritten < self.contentLength) {
             UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
             
             UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;
@@ -498,16 +493,14 @@ static NSMapTable *CACHE_TASKS_REF;
             
             if (deltaTimeInterval >= 1000) {
                 
-                weakself.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024);
-                [weakself sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":[NSNumber numberWithLongLong:weakself.mProgress],@"length":[NSNumber numberWithLongLong:weakself.contentLength],@"speed":[NSNumber numberWithLongLong:deltaProgress]}] delay:1.0];
+                self.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f;//# bype/s
+                [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:self] delay:1.0];
                 lastDownloadProgress = totalBytesWritten;
                 lastTimeInterval = currentTimeInterval;
             }
         }else {
             
-            [weakself sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":[NSNumber numberWithLongLong:weakself.mProgress],@"length":[NSNumber numberWithLongLong:weakself.contentLength],@"speed":[NSNumber numberWithLongLong:(totalBytesWritten-lastDownloadProgress)]}] delay:1.0];
-            
-//            [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}]];
+            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self]];
         }
         
     } fileURL:^NSString *(NSURLResponse *response) {
@@ -515,11 +508,11 @@ static NSMapTable *CACHE_TASKS_REF;
     }  completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
         [writeHandle closeFile];
         if (error) {
-            weakself.error = error.localizedDescription;
-            [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
+            self.error = error.localizedDescription;
+            [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
         }else {
             [writeHandle closeFile];
-            [weakself sendMessageType:MessageTypeEventTaskDone];
+            [self sendMessageType:MessageTypeEventTaskDone];
         }
     }];
 }
@@ -686,9 +679,7 @@ static NSMapTable *CACHE_TASKS_REF;
             [self.downloadTask removeMessageWithType:MessageTypeEventProgress];
         case MessageTypeEventProgress:
             //notify 下载进度
-            if (message.obj) {
-                [CPNotificationManager postNotificationWithName:kMessageTypeEventProgress type:0 message:nil obj:self.downloadTask userInfo:@{@"dynamicNum":message.obj}];
-            }
+            [CPNotificationManager postNotificationWithName:kMessageTypeEventProgress type:0 message:nil obj:self.downloadTask];
             return YES;
             
         default:
@@ -737,7 +728,7 @@ static NSMapTable *CACHE_TASKS_REF;
     switch (message.type) {
         case MessageTypeActionStart:
             if (![self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
-//                [CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:message.type message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
+                //                [CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:message.type message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
                 [self.downloadTask transitionToState:self.downloadTask.mPaused];
                 return YES;
                 if (![ConnectionUtils isNetworkConnected]) {
@@ -982,6 +973,7 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     [super enter];
     if(_isCachedTask) {
+        NSAssert(self.downloadTask != nil, @"downloadTask is a nil");
         [_tasks addObject:self.downloadTask];
     }
 }
@@ -989,6 +981,7 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     [super exit];
     if (_isCachedTask) {
+        NSAssert(self.downloadTask != nil, @"downloadTask is a nil");
         [_tasks removeObject:self.downloadTask];
     }
 }
