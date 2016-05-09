@@ -12,7 +12,6 @@
 @interface VMDownloadHttp ()<NSURLSessionDataDelegate>
 @property (nonatomic, assign)long long currentLength; /**< 当前已经下载的大小 */
 @property (readwrite, nonatomic, copy) VMURLSessionTaskCompletionHandler completionHandler;
-@property (readwrite, nonatomic, copy) void(^finishDownload) ();
 @property (readwrite, nonatomic, copy) ProgressBlock downloadProgress;
 @end
 

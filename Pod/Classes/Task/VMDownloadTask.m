@@ -494,13 +494,14 @@ static NSMapTable *CACHE_TASKS_REF;
             if (deltaTimeInterval >= 1000) {
                 
                 self.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f;//# bype/s
-                [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:self] delay:1.0];
+                [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress] delay:1.0];
                 lastDownloadProgress = totalBytesWritten;
                 lastTimeInterval = currentTimeInterval;
             }
         }else {
-            
-            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self]];
+#warning ....sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self].....delloc Failure... Why?
+//            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self]];
+            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress]];
         }
         
     } fileURL:^NSString *(NSURLResponse *response) {

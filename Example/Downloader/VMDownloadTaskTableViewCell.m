@@ -27,7 +27,7 @@
         self.progressView.progress = 0.0f;
     }
     self.percentLabel.text = [NSString stringWithFormat:@"%.2f%%",self.progressView.progress * 100];
-    self.speedLabel.text = [NSString stringWithFormat:@"%.2fMB/s",task.mSpeed];
+    self.speedLabel.text = [NSString stringWithFormat:@"%.2fMB/s",task.mSpeed*1.0 / 1024 / 1024];
     
     if (task.mState == DownloadTaskStateOngoing) {
         self.speedView.hidden = NO;
