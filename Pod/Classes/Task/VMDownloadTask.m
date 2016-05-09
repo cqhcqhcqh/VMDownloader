@@ -178,8 +178,12 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     VMDownloaderManager *manager = [VMDownloaderManager getInstanceWithKey:key];
     NSAssert(manager != NULL, @"DownloadManager is null for key=%@",key);
-    
-    NSString *uuid = [[NSUUID UUID] UUIDString];
+    NSString *uuid = nil;
+    if (request.mid.length && request.mid) {
+        uuid = request.mid;
+    }else {
+        uuid = [[NSUUID UUID] UUIDString];
+    }
     VMDownloadTask * task = [self initWithRunloopThread:thread uuid:uuid downloadManager:manager];
     task.url = request.url;
     task.mMd5 = request.MD5Value;
