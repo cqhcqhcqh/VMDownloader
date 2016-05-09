@@ -186,6 +186,7 @@ static NSMapTable *CACHE_TASKS_REF;
     task.encriptDescription = request.encriptDescription;
     task.filePath = request.destinationFilePath;
     task.mState = DownloadTaskStateInit;
+    task.mLastState = task.mState;
     task.title = request.title;
     task.netWorkMode = MASK_NETWORK_WIFI;
     task.contentLength = 0;
@@ -494,13 +495,15 @@ static NSMapTable *CACHE_TASKS_REF;
             if (deltaTimeInterval >= 1000) {
                 
                 weakself.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f / (1024.0f*1024);
-                [weakself sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}] delay:1.0];
+                [weakself sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":[NSNumber numberWithLongLong:weakself.mProgress],@"length":[NSNumber numberWithLongLong:weakself.contentLength],@"speed":[NSNumber numberWithLongLong:deltaProgress]}] delay:1.0];
                 lastDownloadProgress = totalBytesWritten;
                 lastTimeInterval = currentTimeInterval;
             }
         }else {
             
-            [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}]];
+            [weakself sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":[NSNumber numberWithLongLong:weakself.mProgress],@"length":[NSNumber numberWithLongLong:weakself.contentLength],@"speed":[NSNumber numberWithLongLong:(totalBytesWritten-lastDownloadProgress)]}] delay:1.0];
+            
+//            [weakself sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:@{@"progress":@(weakself.mProgress),@"length":@(weakself.contentLength),@"speed":[NSNumber numberWithFloat:weakself.mSpeed]}]];
         }
         
     } fileURL:^NSString *(NSURLResponse *response) {

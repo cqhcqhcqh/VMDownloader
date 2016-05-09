@@ -548,7 +548,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CODE_SIGN_IDENTITY = "iPhone Distribution: Honorary Academy Technology Co. Ltd.";
+				CODE_SIGN_IDENTITY = "iPhone Developer: 启晗 程 (FBLAJ96AZV)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -564,9 +564,9 @@
 					"\"FMDB\"",
 					"-all_load",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.demo.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.demo.Downloader-Example";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "71a9218d-7077-4663-83c4-e03c977ba698";
+				PROVISIONING_PROFILE = "7f7f5855-2b60-42a3-82ef-ddbdd098e4c9";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -577,7 +577,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CODE_SIGN_IDENTITY = "iPhone Distribution: Honorary Academy Technology Co. Ltd.";
+				CODE_SIGN_IDENTITY = "iPhone Developer: 启晗 程 (FBLAJ96AZV)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -593,9 +593,9 @@
 					"\"FMDB\"",
 					"-all_load",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.demo.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.demo.Downloader-Example";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "71a9218d-7077-4663-83c4-e03c977ba698";
+				PROVISIONING_PROFILE = "7f7f5855-2b60-42a3-82ef-ddbdd098e4c9";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
