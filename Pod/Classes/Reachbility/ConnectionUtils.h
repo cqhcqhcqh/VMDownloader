@@ -8,11 +8,12 @@
 
 #import <Foundation/Foundation.h>
 #import "Reachability.h"
-typedef void(^NetworkStatusBlock)(NetworkStatus status);
+typedef void(^NetworkStatusBlock)(Reachability* reach);
 
 @interface ConnectionUtils : NSObject
 + (BOOL)isWifiConnected;
 + (BOOL)isMobileConnected;
 + (BOOL)isNetworkConnected;
 + (void)connectionChange:(NetworkStatusBlock)netWorkStatus;
++ (Reachability *)reachability;
 @end

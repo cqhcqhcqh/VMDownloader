@@ -26,10 +26,10 @@ static Reachability* reach;
     [reach startNotifier];
 }
 
-+ (void)reachabilityChanged:(Reachability *)reach {
++ (void)reachabilityChanged:(NSNotification *)note {
     NetworkStatusBlock networkStatus =  objc_getAssociatedObject(self, &kNetWorkStatusBlock);
     if (networkStatus) {
-        networkStatus(reach.currentReachabilityStatus);
+        networkStatus(note.object);
     }
 }
 + (BOOL)isWifiConnected {
@@ -49,4 +49,9 @@ static Reachability* reach;
         objc_setAssociatedObject(self, &kNetWorkStatusBlock, netWorkStatus, OBJC_ASSOCIATION_COPY_NONATOMIC);
     }
 }
+
++ (Reachability *)reachability {
+    return reach;
+}
+
 @end

@@ -28,6 +28,8 @@
 #import "Reachability.h"
 #import "DownloaderDao.h"
 #import "VMSharedPreferences.h"
+#import "ConnectionUtils.h"
+
 @interface VMDownloaderManager ()
 @property (readwrite, nonatomic, strong) VMDownloadConfig *downloadConfig;
 @property (readwrite, nonatomic, strong) NSThread *downloadTaskRunLoopThread;
@@ -156,20 +158,13 @@ static NSMutableDictionary *MANAGERS;
 #pragma mark --- StartObserver
 - (void)startObserverNetworkState {
     
-    Reachability* reach = [Reachability reachabilityWithHostname:@"www.baidu.com"];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
-    [reach startNotifier];
-    
+    [ConnectionUtils connectionChange:^(Reachability *reach) {
+        NSLog(@"reachabilityChanged --->>>>>>%@",reach.currentReachabilityString);
+        [self sendNetworkChanged];
+    }];
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-    [ud addObserver:self forKeyPath:MAX_DOWNLOAD_COUNT options:NSKeyValueObservingOptionOld|NSKeyValueObservingOptionNew context:nil];
-    [ud addObserver:self forKeyPath:NETWORK_MODE options:NSKeyValueObservingOptionOld|NSKeyValueObservingOptionNew context:nil];
-}
-
-
-- (void)reachabilityChanged:(NSNotification *)note
-{
-    NSLog(@"reachabilityChanged --->>>>>>%@",[note.object currentReachabilityString]);
-    [self sendNetworkChanged];
+    [ud addObserver:self forKeyPath:MAX_DOWNLOAD_COUNT options:0 context:nil];
+    [ud addObserver:self forKeyPath:NETWORK_MODE options:0 context:nil];
 }
 
 
@@ -182,6 +177,12 @@ static NSMutableDictionary *MANAGERS;
     if ([keyPath isEqualToString:MAX_DOWNLOAD_COUNT]) {
         [self sendMaxDownloadCountChanged];
     }
+}
+
+- (void)dealloc
+{
+    [[NSUserDefaults standardUserDefaults] removeObserver:self forKeyPath:MAX_DOWNLOAD_COUNT];
+    [[NSUserDefaults standardUserDefaults] removeObserver:self forKeyPath:NETWORK_MODE];
 }
 
 - (void)sendNetworkChanged {

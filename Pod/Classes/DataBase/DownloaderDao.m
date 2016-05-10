@@ -34,7 +34,7 @@ static FMDatabase *database;
 + (void)initialize
 {
     if (self == [DownloaderDao class]) {
-//        NSString *documentFilePath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+//        NSString *documentFilePath = DocumenDir [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
         NSString *sqliteFilePath = [DocumenDir stringByAppendingPathComponent:@"download.sqlite"];
         database = [FMDatabase databaseWithPath:sqliteFilePath];
         if ([database open]) {

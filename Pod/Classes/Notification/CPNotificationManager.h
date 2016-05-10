@@ -13,6 +13,7 @@ FOUNDATION_EXTERN NSString *const kDownloadStateChange;
 FOUNDATION_EXTERN NSString *const kDownloadStateOldValue;
 FOUNDATION_EXTERN NSString *const kDownloadStateNewValue;
 FOUNDATION_EXTERN NSString *const kDownloadNetworkNotPermission;
+FOUNDATION_EXTERN NSString *const kDownloadNetworkChange;
 
 @interface CPNotificationManager : NSObject
 + (void)postNotificationWithName:(NSString *)aName type:(int)type;

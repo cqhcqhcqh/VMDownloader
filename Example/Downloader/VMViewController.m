@@ -38,12 +38,15 @@
     NSURLRequest *request = [[NSURLRequest alloc] initWithURL:[NSURL URLWithString:@"http://service.cc.vmovier.com/Magicapi/Test/testForYe_movier"]];
     
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse * _Nullable response, NSData * _Nullable data, NSError * _Nullable connectionError) {
-        id object = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
-        [self.videoResources removeAllObjects];
-        for (NSDictionary *dict in object) {
-            VMVideoResource *resource = [VMVideoResource videoResourceWithDict:dict];
-            [self.videoResources addObject:resource];
-            [self.resourceTableView reloadData];
+        if (!connectionError) {
+            
+            id object = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
+            [self.videoResources removeAllObjects];
+            for (NSDictionary *dict in object) {
+                VMVideoResource *resource = [VMVideoResource videoResourceWithDict:dict];
+                [self.videoResources addObject:resource];
+                [self.resourceTableView reloadData];
+            }
         }
     }];
 }
@@ -52,12 +55,14 @@
     NSURLRequest *request = [[NSURLRequest alloc] initWithURL:[NSURL URLWithString:@"http://service.cc.vmovier.com/Magicapi/Test/testForYe_movier?errorMd5=1"]];
     
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse * _Nullable response, NSData * _Nullable data, NSError * _Nullable connectionError) {
-        id object = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
-        [self.videoResources removeAllObjects];
-        for (NSDictionary *dict in object) {
-            VMVideoResource *resource = [VMVideoResource videoResourceWithDict:dict];
-            [self.videoResources addObject:resource];
-            [self.resourceTableView reloadData];
+        if (!connectionError && data) {
+            id object = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
+            [self.videoResources removeAllObjects];
+            for (NSDictionary *dict in object) {
+                VMVideoResource *resource = [VMVideoResource videoResourceWithDict:dict];
+                [self.videoResources addObject:resource];
+                [self.resourceTableView reloadData];
+            }
         }
     }];
 }

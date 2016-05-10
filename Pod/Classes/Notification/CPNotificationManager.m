@@ -13,7 +13,7 @@ NSString *const kDownloadStateChange = @"com.vmovier.downloadTaskStateChange";
 NSString *const kDownloadStateOldValue = @"com.vmovier.downloadTaskStateOldValue";;
 NSString *const kDownloadStateNewValue = @"com.vmovier.downloadTaskStateNewValue";;
 NSString *const kDownloadNetworkNotPermission = @"com.vmovier.downloadNetworkNotPermission";
-
+NSString *const kDownloadNetworkChange = @"com.vmovier.downloadNetworkNotChange";
 #define NotificationCenter [NSNotificationCenter defaultCenter]
 @implementation CPNotificationManager
 

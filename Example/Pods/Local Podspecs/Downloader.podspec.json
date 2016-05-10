@@ -1,6 +1,6 @@
 {
   "name": "Downloader",
-  "version": "0.0.9",
+  "version": "0.1.6",
   "summary": "这是我们的第一个支持本地私有库<Downloader>,请大家多多关照,多给建议和支持",
   "description": "A description of the Pod more detailed than the summary. 就是对当前lib的详细功能的详细描述吧。我猜的",
   "homepage": "https://chengqihan@git.vmovier.cc/scm/~chengqihan/downloaderlib",
@@ -10,7 +10,7 @@
   },
   "source": {
     "git": "https://chengqihan@git.vmovier.cc/scm/~chengqihan/downloaderlib.git",
-    "tag": "0.0.9"
+    "tag": "0.1.6"
   },
   "platforms": {
     "ios": "7.0"

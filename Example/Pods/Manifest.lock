@@ -1,5 +1,5 @@
 PODS:
-  - Downloader (0.0.9):
+  - Downloader (0.1.6):
     - FMDB
   - FBSnapshotTestCase (2.1.0):
     - FBSnapshotTestCase/SwiftSupport (= 2.1.0)
@@ -19,7 +19,7 @@ EXTERNAL SOURCES:
     :path: ../
 
 SPEC CHECKSUMS:
-  Downloader: 7b0f9064e4fd9cd9a5a32167d91205ad0896a6f7
+  Downloader: 1a33335a54f799dc577236aa8426f31cdebc64f0
   FBSnapshotTestCase: 366ecd378511d7716c79991cd8067d1eed23578d
   FMDB: 854a0341b4726e53276f2a8996f06f1b80f9259a
 
