@@ -974,16 +974,20 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     [super enter];
     if(_isCachedTask) {
-        NSAssert(self.downloadTask != nil, @"downloadTask is a nil");
-        [_tasks addObject:self.downloadTask];
+//        NSAssert(self.downloadTask != nil, @"downloadTask is a nil");
+        if (self.downloadTask) {
+            [_tasks addObject:self.downloadTask];
+        }
     }
 }
 - (void)exit
 {
     [super exit];
     if (_isCachedTask) {
-        NSAssert(self.downloadTask != nil, @"downloadTask is a nil");
-        [_tasks removeObject:self.downloadTask];
+//        NSAssert(self.downloadTask != nil, @"downloadTask is a nil");
+        if (self.downloadTask) {
+            [_tasks removeObject:self.downloadTask];
+        }
     }
 }
 
