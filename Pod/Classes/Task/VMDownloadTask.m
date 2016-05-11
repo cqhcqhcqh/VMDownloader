@@ -510,7 +510,9 @@ static NSMapTable *CACHE_TASKS_REF;
         [writeHandle closeFile];
         if (error) {
             self.error = error.localizedDescription;
-            [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
+            if (![error.localizedDescription isEqualToString:@"cancelled"]) {
+                [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
+            }
         }else {
             [writeHandle closeFile];
             [self sendMessageType:MessageTypeEventTaskDone];
