@@ -331,6 +331,7 @@ static NSMapTable *CACHE_TASKS_REF;
     //根据uuid从数据库中删除对应的Task
     [DownloaderDao deleteDownloadTaskWithUUID:self.uuid];
     //发送Notification
+    //    mEventBus.post
 }
 
 /**
@@ -354,8 +355,8 @@ static NSMapTable *CACHE_TASKS_REF;
         if (self.mState != self.mLastState) {
             [CPNotificationManager postNotificationWithName:kDownloadStateChange type:0 message:nil obj:self userInfo:@{kDownloadStateOldValue:@(self.mLastState),kDownloadStateNewValue:@(self.mState)}];
             self.mLastState = self.mState;
-            _hasDataChanged = YES;
         }
+        _hasDataChanged = YES;
     }
 }
 
@@ -430,9 +431,12 @@ static NSMapTable *CACHE_TASKS_REF;
     if (self.contentLength == 0) {
         CPStateMechineLog(@"获取请求头 %s %zd",__PRETTY_FUNCTION__, __LINE__);
         self.urlSessionDataTask = [VMDownloadHttp HEADRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-            
+            self.error = error.localizedDescription;
             if (error) {
-                [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
+                CPStateMechineLog(@"获取请求头失败 %@ %s %zd",error.localizedDescription,__PRETTY_FUNCTION__, __LINE__);
+                if (![error.localizedDescription isEqualToString:@"cancelled"]) {
+                    [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
+                }
             }else {
                 CPStateMechineLog(@"获取请求头成功 %s %zd",__PRETTY_FUNCTION__, __LINE__);
                 self.contentLength = response.expectedContentLength;
@@ -461,6 +465,7 @@ static NSMapTable *CACHE_TASKS_REF;
     NSAssert(writeHandle, @"writeHandle is nil");
     if (![self.downloaderConfig isNetworkAllowedFor:self]) {
         CPStateMechineLog(@"网络不允许下载 %s %zd",__PRETTY_FUNCTION__, __LINE__);
+        self.error = @"网络不允许下载";
         [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException]];
         return;
     }
@@ -479,7 +484,17 @@ static NSMapTable *CACHE_TASKS_REF;
         self.mProgress = totalBytesWritten;
         [writeHandle seekToEndOfFile];
         // 从当前移动的位置(文件尾部)开始写入数据
-        [writeHandle writeData:data];
+        @try
+        {
+            [writeHandle writeData:data];
+        }
+        @catch (NSException *e)
+        {
+            CPStateMechineLog(@"文件写入失败 %@ %s %zd",e.name,__PRETTY_FUNCTION__, __LINE__);
+
+            self.error = e.name;
+        }
+        //        [writeHandle writeData:data];
 #warning 内存警告没有error输出.....
         if (self.retryCount != 0) {
             self.retryCount = 0;
@@ -500,7 +515,7 @@ static NSMapTable *CACHE_TASKS_REF;
             }
         }else {
 #warning ....sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self].....delloc Failure... Why?
-//            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self]];
+            //            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self]];
             [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress]];
         }
         
@@ -509,6 +524,7 @@ static NSMapTable *CACHE_TASKS_REF;
     }  completionHandler:^(NSURLResponse *response, NSError * _Nullable error) {
         [writeHandle closeFile];
         if (error) {
+            CPStateMechineLog(@"文件下载失败:%@ %s %zd",error.localizedDescription,__PRETTY_FUNCTION__, __LINE__);
             self.error = error.localizedDescription;
             if (![error.localizedDescription isEqualToString:@"cancelled"]) {
                 [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
@@ -731,7 +747,7 @@ static NSMapTable *CACHE_TASKS_REF;
     switch (message.type) {
         case MessageTypeActionStart:
             if (![self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
-                //                [CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:message.type message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
+                //[CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:message.type message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
                 [self.downloadTask transitionToState:self.downloadTask.mPaused];
                 return YES;
                 if (![ConnectionUtils isNetworkConnected]) {
@@ -799,10 +815,14 @@ static NSMapTable *CACHE_TASKS_REF;
     
     NSArray *tasks = self.downloadTask.mDownloading.tasks;
     if([tasks count] < self.downloadTask.downloaderConfig.maxDownloadCount) {
+        
         if([self.tasks firstObject] == self.downloadTask) {
             if (([ConnectionUtils isNetworkConnected] && [self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) || (self.downloadTask.contentLength == 0)) {
+                // 网络允许或者还没有获取到文件大小时, 直接进入下载过程
                 [self.downloadTask transitionToState:self.downloadTask.mOngoing];
             }else {
+                
+                // 否则进入重试阶段(网络不允许&&文件大小获取到了)
                 [self.downloadTask transitionToState:self.downloadTask.mRetry];
             }
         }
@@ -820,8 +840,10 @@ static NSMapTable *CACHE_TASKS_REF;
             if (firstWaitingTask == self.downloadTask) {
                 if ([self.downloadTask.mDownloading tasks].count < self.downloadTask.downloaderConfig.maxDownloadCount) {
                     if (([ConnectionUtils isNetworkConnected] && [self.downloadTask.downloaderConfig isNetworkAllowedFor:firstWaitingTask]) || (self.downloadTask.contentLength == 0)) {
+                        // 网络允许或者还没有获取到文件大小时, 直接进入下载过程
                         [self.downloadTask transitionToState:self.downloadTask.mOngoing];
                     }else{
+                        // 否则进入重试阶段(网络不允许&&文件大小获取到了)
                         [self.downloadTask transitionToState:self.downloadTask.mRetry];
                     }
                 }
@@ -976,7 +998,7 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     [super enter];
     if(_isCachedTask) {
-//        NSAssert(self.downloadTask != nil, @"downloadTask is a nil");
+        //        NSAssert(self.downloadTask != nil, @"downloadTask is a nil");
         if (self.downloadTask) {
             [_tasks addObject:self.downloadTask];
         }
@@ -986,7 +1008,7 @@ static NSMapTable *CACHE_TASKS_REF;
 {
     [super exit];
     if (_isCachedTask) {
-//        NSAssert(self.downloadTask != nil, @"downloadTask is a nil");
+        //        NSAssert(self.downloadTask != nil, @"downloadTask is a nil");
         if (self.downloadTask) {
             [_tasks removeObject:self.downloadTask];
         }

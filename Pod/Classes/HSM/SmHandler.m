@@ -130,7 +130,7 @@
     [self performTransitions:msgProcessedState message:message];
     CPStateMechineLog(@">>>>>>>>>>>>>>>>>>任务%@------------结束------------\n\n",MessageMapping[message.type]);
     
-    NSAssert(self.handlerDelegate != nil, @"StateMachine is nil");
+//    NSAssert(self.handlerDelegate != nil, @"StateMachine is nil");
     if ([self.handlerDelegate respondsToSelector:@selector(smHandlerProcessFinalMessage:)]) {
         [self.handlerDelegate smHandlerProcessFinalMessage:message];
     }
