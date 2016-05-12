@@ -793,6 +793,8 @@ static NSMapTable *CACHE_TASKS_REF;
                         [self.downloadTask saveTask];// 进行save的原因是因为要保存mError
                         [self.downloadTask transitionToState:self.downloadTask.mIOError];
                     }
+                }else {
+                    [CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:0 message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
                 }
             } else {
                 CPStateMechineLog(@"多次重试都失败");
