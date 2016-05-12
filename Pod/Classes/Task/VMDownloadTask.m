@@ -461,7 +461,16 @@ static NSMapTable *CACHE_TASKS_REF;
             return;
         }
     }
-    NSFileHandle *writeHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
+    NSFileHandle *writeHandle = nil;
+    @try {
+        writeHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
+    } @catch (NSException *exception) {
+        CPStateMechineLog(@"writeHandle创建失败 %@ %s %zd",exception.name,__PRETTY_FUNCTION__, __LINE__);
+        self.error = exception.name;
+    } @finally {
+        
+    }
+    
     NSAssert(writeHandle, @"writeHandle is nil");
     if (![self.downloaderConfig isNetworkAllowedFor:self]) {
         CPStateMechineLog(@"网络不允许下载 %s %zd",__PRETTY_FUNCTION__, __LINE__);
@@ -484,18 +493,17 @@ static NSMapTable *CACHE_TASKS_REF;
         self.mProgress = totalBytesWritten;
         [writeHandle seekToEndOfFile];
         // 从当前移动的位置(文件尾部)开始写入数据
-        @try
-        {
-            [writeHandle writeData:data];
-        }
-        @catch (NSException *e)
-        {
-            CPStateMechineLog(@"文件写入失败 %@ %s %zd",e.name,__PRETTY_FUNCTION__, __LINE__);
-
-            self.error = e.name;
-        }
-        //        [writeHandle writeData:data];
+        
 #warning 内存警告没有error输出.....
+        @try {
+            [writeHandle writeData:data];
+        } @catch (NSException *exception) {
+            CPStateMechineLog(@"文件写入失败 %@ %s %zd",exception.name,__PRETTY_FUNCTION__, __LINE__);
+            self.error = exception.name;
+        } @finally {
+            
+        }
+        
         if (self.retryCount != 0) {
             self.retryCount = 0;
         }
@@ -748,19 +756,20 @@ static NSMapTable *CACHE_TASKS_REF;
         case MessageTypeActionStart:
             if (![self.downloadTask.downloaderConfig isNetworkAllowedFor:self.downloadTask]) {
                 //[CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:message.type message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
-                [self.downloadTask transitionToState:self.downloadTask.mPaused];
-                return YES;
+//                [self.downloadTask transitionToState:self.downloadTask.mPaused];
+//                return YES;
                 if (![ConnectionUtils isNetworkConnected]) {
                     CPStateMechineLog(@"没有网络");
                     self.downloadTask.error = @"没有网络";
                     [self.downloadTask saveTask];
                 }else {
-                    [CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:message.type message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
+                    
                     CPStateMechineLog(@"网络不允许");
                     self.downloadTask.error = @"网络不允许";
                     [self.downloadTask saveTask];
                 }
                 
+                [CPNotificationManager postNotificationWithName:kDownloadNetworkNotPermission type:message.type message:self.downloadTask.error obj:self.downloadTask userInfo:nil];
                 return YES;
             }
             /*
