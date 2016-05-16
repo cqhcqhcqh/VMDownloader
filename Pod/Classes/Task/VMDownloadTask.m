@@ -466,7 +466,8 @@ static NSMapTable *CACHE_TASKS_REF;
         writeHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
     } @catch (NSException *exception) {
         CPStateMechineLog(@"writeHandle创建失败 %@ %s %zd",exception.name,__PRETTY_FUNCTION__, __LINE__);
-        self.error = exception.name;
+        self.error = exception.reason;
+        return;
     } @finally {
         
     }
@@ -483,10 +484,11 @@ static NSMapTable *CACHE_TASKS_REF;
     __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
     VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
+    NSArray *array = nil;
     
-    self.urlSessionDataTask = [downloadHttp downloadTaskWithRequest:request progress:^(NSData *data, int64_t totalBytesWritten) {
+    self.urlSessionDataTask = [downloadHttp downloadTaskWithRequest:request progress:^(NSData *data, int64_t totalBytesWritten,BOOL* stop) {
         if (!_isOnGoing) {
-            return;
+            *stop = YES;
         }
         
         NSAssert(writeHandle, @"writeHandle is nil");
@@ -499,7 +501,10 @@ static NSMapTable *CACHE_TASKS_REF;
             [writeHandle writeData:data];
         } @catch (NSException *exception) {
             CPStateMechineLog(@"文件写入失败 %@ %s %zd",exception.name,__PRETTY_FUNCTION__, __LINE__);
-            self.error = exception.name;
+            self.error = exception.reason;
+            *stop = YES;
+            NSAssert(self.urlSessionDataTask != nil, @"urlSessionDataTask is nil");
+            [self.urlSessionDataTask cancel];
         } @finally {
             
         }
@@ -523,7 +528,7 @@ static NSMapTable *CACHE_TASKS_REF;
             }
         }else {
 #warning ....sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self].....delloc Failure... Why?
-            //            [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self]];
+                        [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self]];
             [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress]];
         }
         
@@ -533,9 +538,16 @@ static NSMapTable *CACHE_TASKS_REF;
         [writeHandle closeFile];
         if (error) {
             CPStateMechineLog(@"文件下载失败:%@ %s %zd",error.localizedDescription,__PRETTY_FUNCTION__, __LINE__);
-            self.error = error.localizedDescription;
             if (![error.localizedDescription isEqualToString:@"cancelled"]) {
+                self.error = error.localizedDescription;
                 [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
+            }else {
+                
+                NSError *ownError = nil;
+                if (self.error.length && self.error) {
+                    NSError *ownError = [NSError errorWithDomain:self.error code:0 userInfo:nil];
+                }
+                [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:ownError]];
             }
         }else {
             [writeHandle closeFile];

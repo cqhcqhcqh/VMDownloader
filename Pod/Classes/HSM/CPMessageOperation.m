@@ -103,7 +103,7 @@ NSString* const MessageMapping [] = {
 //}
 
 - (void)dealloc {
-//    NSLog(@"--%@ 挂掉了",self.class);
+    NSLog(@"--%@ 挂掉了",self.class);
 }
 @end
 

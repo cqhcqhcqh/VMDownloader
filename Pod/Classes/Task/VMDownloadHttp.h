@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-typedef void(^ProgressBlock)(NSData* data, int64_t totalBytesWritten);
+typedef void(^ProgressBlock)(NSData* data, int64_t totalBytesWritten,BOOL *stop);
 typedef void (^VMURLSessionTaskCompletionHandler)(NSURLResponse *response, NSError *error);
 
 @interface VMDownloadHttp : NSObject

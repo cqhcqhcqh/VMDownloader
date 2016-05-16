@@ -45,9 +45,6 @@
     NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:rangeRequest];
     [dataTask resume];
     return dataTask;
-    
-//    NSURLConnection *conn = [NSURLConnection connectionWithRequest:rangeRequest delegate:self];
-//    return conn;
 }
 
 // 从本地文件中获取已下载文件的大小
@@ -70,8 +67,9 @@
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data
 {
     self.currentLength += data.length;
-    if (self.downloadProgress) {
-        self.downloadProgress(data,self.currentLength);
+    static BOOL stop = NO;
+    if (self.downloadProgress && !stop) {
+        self.downloadProgress(data,self.currentLength,&stop);
     }
 }
 

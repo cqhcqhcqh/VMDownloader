@@ -10,8 +10,7 @@
 #import "CPMessageOperation.h"
 
 @interface CPMessagesQueue ()
-@property (nonatomic ,strong) CPMessageOperation *lastOperation;
-@property (readwrite, nonatomic, strong) CPMessageOperation *excutingOperation;
+@property (nonatomic ,weak) CPMessageOperation *lastOperation;
 @end
 
 @implementation CPMessagesQueue
