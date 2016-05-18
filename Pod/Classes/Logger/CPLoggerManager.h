@@ -41,9 +41,9 @@ typedef void(^LoggerPrint)(NSString* message);
 @end
 
 
-#define DevLog(...)[CPDevLogger printMessage:__VA_ARGS__]
+#define MsgOperationLog(...)[CPMsgOperationLogger printMessage:__VA_ARGS__]
 
-@interface CPDevLogger : NSObject
+@interface CPMsgOperationLogger : NSObject
 
 + (CPLogger *) getLogger;
 + (void) printMessage:(NSString *)message, ...;

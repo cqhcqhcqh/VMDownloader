@@ -440,6 +440,7 @@ static NSMapTable *CACHE_TASKS_REF;
             }else {
                 CPStateMechineLog(@"获取请求头成功 %s %zd",__PRETTY_FUNCTION__, __LINE__);
                 self.contentLength = response.expectedContentLength;
+                [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress]];
                 if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
                     [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
                 }
@@ -528,7 +529,7 @@ static NSMapTable *CACHE_TASKS_REF;
             }
         }else {
 #warning ....sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self].....delloc Failure... Why?
-                        [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self]];
+//                        [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress obj:self]];
             [self sendMessage:[CPMessage messageWithType:MessageTypeEventProgress]];
         }
         
@@ -897,11 +898,14 @@ static NSMapTable *CACHE_TASKS_REF;
     [self.downloadTask saveTask];
     
     if([self.downloadTask needVerify]) {
-        if([self.downloadTask.downloaderManager verifyMd5WithFilePath:[[self.downloadTask fileDir] stringByAppendingPathComponent:self.downloadTask.filePath] md5Result:self.downloadTask.mMd5]) {
-            [self sendMessageType:MessageTypeEventVerifyPass];
-        }else{
-            [self sendMessageType:MessageTypeEventVerifyFail];
-        }
+        
+        [self.downloadTask.downloaderManager verifyMd5WithFilePath:[[self.downloadTask fileDir] stringByAppendingPathComponent:self.downloadTask.filePath] md5Result:self.downloadTask.mMd5 completion:^(BOOL success, NSString *realMd5Result) {
+            if (success) {
+                [self sendMessageType:MessageTypeEventVerifyPass];
+            }else {
+                [self sendMessageType:MessageTypeEventVerifyFail withObj:realMd5Result];
+            }
+        }];
     }else {
         [self.downloadTask transitionToState:self.downloadTask.mSuccess];
     }

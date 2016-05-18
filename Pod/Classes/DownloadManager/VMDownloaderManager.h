@@ -65,10 +65,10 @@
  *  /Vedio/xxx.mp4
  
  *  @param md5Result 源MD5值
- *
- *  @return 校验是否成功
+ *  @param completion 完成Block
  */
-- (BOOL)verifyMd5WithFilePath:(NSString *)filePath md5Result:(NSString *)md5Result;
+
+- (void)verifyMd5WithFilePath:(NSString *)filePath md5Result:(NSString *)md5Result completion:(void(^)(BOOL success,NSString *realMd5Result))completion;
 
 //+ (VMDownloadTask *)getTaskById:(NSString *)uuid;
 

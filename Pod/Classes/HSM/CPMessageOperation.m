@@ -7,6 +7,8 @@
 //
 
 #import "CPMessageOperation.h"
+#import "CPLoggerManager.h"
+
 NSString* const MessageMapping [] = {
     [MessageTypeEventInit] = @"MessageTypeEventInit",
     [MessageTypeEventRetryRequest] = @"MessageTypeEventRetryRequest",
@@ -103,7 +105,7 @@ NSString* const MessageMapping [] = {
 //}
 
 - (void)dealloc {
-    NSLog(@"--%@ 挂掉了",self.class);
+    MsgOperationLog(@"--%@ deallo",[self class]);
 }
 @end
 

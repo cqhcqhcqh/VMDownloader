@@ -227,4 +227,18 @@ static NSMutableDictionary *MANAGERS;
     }
     return NO;
 }
+
+- (void)verifyMd5WithFilePath:(NSString *)filePath md5Result:(NSString *)md5Result completion:(void (^)(BOOL success, NSString *realResult))completion
+{
+    NSString *md5 = [filePath MD5FilePath];
+    if([md5Result isEqualToString:md5]) {
+        if (completion) {
+            completion(YES,md5);
+        }
+    }else {
+        if (completion) {
+            completion(NO,md5);
+        }
+    }
+}
 @end

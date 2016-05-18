@@ -26,12 +26,12 @@ static NSMutableDictionary *_poolDict;
             NSLog(@"StateMachine ===== > %@",message);
         }];
         
-        CPLogger *devLogger = [CPDevLogger getLogger];
-        [devLogger addBlock:^(NSString * message) {
-            NSLog(@"State ===== > %@",message);
+        CPLogger *msgOperation = [CPMsgOperationLogger getLogger];
+        [msgOperation addBlock:^(NSString * message) {
+            NSLog(@"msgOperation ===== > %@",message);
         }];
         
-        CPLogger *applicationLogger = [CPDevLogger getLogger];
+        CPLogger *applicationLogger = [CPApplicationLogger getLogger];
         [applicationLogger addBlock:^(NSString * message) {
             NSLog(@"State ===== > %@",message);
         }];
@@ -169,7 +169,7 @@ static NSMutableDictionary *_poolDict;
 @end
 
 
-@implementation CPDevLogger
+@implementation CPMsgOperationLogger
 
 + (void) printMessage:(NSString *)message, ... {
     
