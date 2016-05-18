@@ -8,7 +8,8 @@
 
 #import <Foundation/Foundation.h>
 FOUNDATION_EXTERN NSString *const kMessageTypeEventProgress;
-FOUNDATION_EXTERN NSString *const kDownloadTaskInsert;
+FOUNDATION_EXTERN NSString *const kDownloadTaskDBInsert;
+FOUNDATION_EXTERN NSString *const kDownloadTaskDBDelete;
 FOUNDATION_EXTERN NSString *const kDownloadStateChange;
 FOUNDATION_EXTERN NSString *const kDownloadStateOldValue;
 FOUNDATION_EXTERN NSString *const kDownloadStateNewValue;

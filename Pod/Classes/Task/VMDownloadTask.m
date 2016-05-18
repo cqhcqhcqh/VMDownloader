@@ -331,7 +331,8 @@ static NSMapTable *CACHE_TASKS_REF;
     //根据uuid从数据库中删除对应的Task
     [DownloaderDao deleteDownloadTaskWithUUID:self.uuid];
     //发送Notification
-    //    mEventBus.post
+    [CPNotificationManager postNotificationWithName:kDownloadTaskDBDelete type:0];
+    
 }
 
 /**
@@ -386,7 +387,7 @@ static NSMapTable *CACHE_TASKS_REF;
             [dict setObject:self.mModifyDate forKey:@"_modify"];
             [DownloaderDao createDownloadTaskWithDictionary:dict];
             
-            [CPNotificationManager postNotificationWithName:kDownloadTaskInsert type:0 message:nil obj:self userInfo:nil];
+            [CPNotificationManager postNotificationWithName:kDownloadTaskDBInsert type:0 message:nil obj:self userInfo:nil];
             
         }else {
             //save
@@ -587,8 +588,11 @@ static NSMapTable *CACHE_TASKS_REF;
         case MessageTypeActionDelete:
             //删除任务和文件 OR Just 任务
             if([message.obj boolValue]){
+                NSString *deleteFilePath = [[self.downloadTask fileDir] stringByAppendingPathComponent:self.downloadTask.filePath];
+                NSAssert(deleteFilePath, @"deleteFilePath is nil");
+                CPStateMechineLog(@"self.downloadTask:%@ fileDir:%@ filePath:%@ deleteFilePath :%@",self.downloadTask,[self.downloadTask fileDir],self.downloadTask.filePath,deleteFilePath);
                 NSError *deleteError = nil;
-                BOOL deleteSuccess = [[NSFileManager defaultManager] removeItemAtPath:[[self.downloadTask fileDir] stringByAppendingPathComponent: self.downloadTask.filePath] error:&deleteError];
+                BOOL deleteSuccess = [[NSFileManager defaultManager] removeItemAtPath:deleteFilePath error:&deleteError];
                 if (deleteError) {
                     CPStateMechineLog(@"删除文件:%@ error%@",deleteSuccess?@"成功":@"失败",[deleteError userInfo]);
                 }
