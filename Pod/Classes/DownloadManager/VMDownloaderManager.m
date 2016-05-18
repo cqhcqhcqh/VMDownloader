@@ -220,13 +220,6 @@ static NSMutableDictionary *MANAGERS;
 }
 
 #pragma mark - MD5校验
-- (BOOL)verifyMd5WithFilePath:(NSString *)filePath md5Result:(NSString *)md5Result
-{
-    if([md5Result isEqualToString:[filePath MD5FilePath]]) {
-        return YES;
-    }
-    return NO;
-}
 
 - (void)verifyMd5WithFilePath:(NSString *)filePath md5Result:(NSString *)md5Result completion:(void (^)(BOOL success, NSString *realResult))completion
 {

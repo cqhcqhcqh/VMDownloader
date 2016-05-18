@@ -898,8 +898,10 @@ static NSMapTable *CACHE_TASKS_REF;
     [self.downloadTask saveTask];
     
     if([self.downloadTask needVerify]) {
-        
-        [self.downloadTask.downloaderManager verifyMd5WithFilePath:[[self.downloadTask fileDir] stringByAppendingPathComponent:self.downloadTask.filePath] md5Result:self.downloadTask.mMd5 completion:^(BOOL success, NSString *realMd5Result) {
+        NSString *filePath = [[self.downloadTask fileDir] stringByAppendingPathComponent:self.downloadTask.filePath];
+        CPStateMechineLog(@"filePath :%@",filePath);
+        [self.downloadTask.downloaderManager verifyMd5WithFilePath:filePath md5Result:self.downloadTask.mMd5 completion:^(BOOL success, NSString *realMd5Result) {
+            CPStateMechineLog(@"downloadTaskmd5:%@ realMd5Result :%@",self.downloadTask.mMd5,realMd5Result);
             if (success) {
                 [self sendMessageType:MessageTypeEventVerifyPass];
             }else {
