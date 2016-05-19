@@ -13,9 +13,14 @@
 @property (nonatomic, assign)long long currentLength; /**< 当前已经下载的大小 */
 @property (readwrite, nonatomic, copy) VMURLSessionTaskCompletionHandler completionHandler;
 @property (readwrite, nonatomic, copy) ProgressBlock downloadProgress;
+
 @end
 
 @implementation VMDownloadHttp
+{
+    BOOL stopDownload;
+}
+
 + (NSURLSessionDataTask *)HEADRequest:(NSURLRequest *)request completionHandler:(void(^)(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error))completionHandler {
     NSURLSession *session = [NSURLSession sharedSession];
     NSMutableURLRequest *HEADRequest = [NSMutableURLRequest requestWithURL:request.URL];
@@ -67,12 +72,10 @@
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data
 {
     NSHTTPURLResponse *response = (NSHTTPURLResponse *)dataTask.response;
-    //    NSLog(@"allHeaderFields%@ statusCode:%zd",response.allHeaderFields,response.statusCode);
     if (response.statusCode>= 200 && response.statusCode < 300) {
         self.currentLength += data.length;
-        static BOOL stop = NO;
-        if (self.downloadProgress && !stop) {
-            self.downloadProgress(data,self.currentLength,&stop);
+        if (self.downloadProgress && !stopDownload) {
+            self.downloadProgress(data,self.currentLength,&stopDownload);
         }
     }
 }
