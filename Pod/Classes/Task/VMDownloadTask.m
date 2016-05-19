@@ -491,15 +491,16 @@ static NSMapTable *CACHE_TASKS_REF;
     self.urlSessionDataTask = [downloadHttp downloadTaskWithRequest:request progress:^(NSData *data, int64_t totalBytesWritten,BOOL* stop) {
         if (!_isOnGoing) {
             *stop = YES;
+            return;
         }
         
         NSAssert(writeHandle, @"writeHandle is nil");
         self.mProgress = totalBytesWritten;
-        [writeHandle seekToEndOfFile];
         // 从当前移动的位置(文件尾部)开始写入数据
         
 #warning 内存警告没有error输出.....
         @try {
+            [writeHandle seekToEndOfFile];
             [writeHandle writeData:data];
         } @catch (NSException *exception) {
             CPStateMechineLog(@"文件写入失败 %@ %s %zd",exception.name,__PRETTY_FUNCTION__, __LINE__);
@@ -507,6 +508,7 @@ static NSMapTable *CACHE_TASKS_REF;
             *stop = YES;
             NSAssert(self.urlSessionDataTask != nil, @"urlSessionDataTask is nil");
             [self.urlSessionDataTask cancel];
+            
         } @finally {
             
         }
