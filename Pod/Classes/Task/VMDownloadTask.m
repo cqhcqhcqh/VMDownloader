@@ -331,7 +331,7 @@ static NSMapTable *CACHE_TASKS_REF;
     //根据uuid从数据库中删除对应的Task
     [DownloaderDao deleteDownloadTaskWithUUID:self.uuid];
     //发送Notification
-    [CPNotificationManager postNotificationWithName:kDownloadTaskDBDelete type:0];
+    [CPNotificationManager postNotificationWithName:kDownloadTaskDBDelete type:0 message:nil obj:self];
     
 }
 
@@ -493,28 +493,29 @@ static NSMapTable *CACHE_TASKS_REF;
             *stop = YES;
         }
         
-        NSAssert(writeHandle, @"writeHandle is nil");
-        self.mProgress = totalBytesWritten;
-        [writeHandle seekToEndOfFile];
-        // 从当前移动的位置(文件尾部)开始写入数据
-        
-#warning 内存警告没有error输出.....
-        @try {
-            [writeHandle writeData:data];
-        } @catch (NSException *exception) {
-            CPStateMechineLog(@"文件写入失败 %@ %s %zd",exception.name,__PRETTY_FUNCTION__, __LINE__);
-            self.error = exception.reason;
-            *stop = YES;
-            NSAssert(self.urlSessionDataTask != nil, @"urlSessionDataTask is nil");
-            [self.urlSessionDataTask cancel];
-        } @finally {
-            
-        }
-        
-        if (self.retryCount != 0) {
-            self.retryCount = 0;
-        }
         if (totalBytesWritten < self.contentLength) {
+            
+            NSAssert(writeHandle, @"writeHandle is nil");
+            self.mProgress = totalBytesWritten;
+            [writeHandle seekToEndOfFile];
+            // 从当前移动的位置(文件尾部)开始写入数据
+            
+            @try {
+                [writeHandle writeData:data];
+            } @catch (NSException *exception) {
+                CPStateMechineLog(@"文件写入失败 %@ %s %zd",exception.name,__PRETTY_FUNCTION__, __LINE__);
+                self.error = exception.reason;
+                *stop = YES;
+                NSAssert(self.urlSessionDataTask != nil, @"urlSessionDataTask is nil");
+                [self.urlSessionDataTask cancel];
+            } @finally {
+                
+            }
+            
+            if (self.retryCount != 0) {
+                self.retryCount = 0;
+            }
+            
             UInt64 currentTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
             
             UInt64 deltaTimeInterval = currentTimeInterval - lastTimeInterval;

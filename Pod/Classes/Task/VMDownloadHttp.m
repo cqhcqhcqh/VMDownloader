@@ -66,10 +66,14 @@
 
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data
 {
-    self.currentLength += data.length;
-    static BOOL stop = NO;
-    if (self.downloadProgress && !stop) {
-        self.downloadProgress(data,self.currentLength,&stop);
+    NSHTTPURLResponse *response = (NSHTTPURLResponse *)dataTask.response;
+    //    NSLog(@"allHeaderFields%@ statusCode:%zd",response.allHeaderFields,response.statusCode);
+    if (response.statusCode>= 200 && response.statusCode < 300) {
+        self.currentLength += data.length;
+        static BOOL stop = NO;
+        if (self.downloadProgress && !stop) {
+            self.downloadProgress(data,self.currentLength,&stop);
+        }
     }
 }
 
