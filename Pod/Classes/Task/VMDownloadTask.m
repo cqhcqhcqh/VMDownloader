@@ -436,7 +436,7 @@ static NSMapTable *CACHE_TASKS_REF;
             self.error = error.localizedDescription;
             if (error) {
                 CPStateMechineLog(@"获取请求头失败 %@ %s %zd",error.localizedDescription,__PRETTY_FUNCTION__, __LINE__);
-                if (![error.localizedDescription isEqualToString:@"cancelled"]) {
+                if ((error.code != NSURLErrorCancelled)) {
                     [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
                 }
             }else {
@@ -505,10 +505,11 @@ static NSMapTable *CACHE_TASKS_REF;
         } @catch (NSException *exception) {
             CPStateMechineLog(@"文件写入失败 %@ %s %zd",exception.name,__PRETTY_FUNCTION__, __LINE__);
             self.error = exception.reason;
+            [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:[NSError errorWithDomain:exception.reason code:0 userInfo:exception.userInfo]]];
             *stop = YES;
             NSAssert(self.urlSessionDataTask != nil, @"urlSessionDataTask is nil");
             [self.urlSessionDataTask cancel];
-            
+            return;
         } @finally {
             
         }
@@ -542,17 +543,19 @@ static NSMapTable *CACHE_TASKS_REF;
         [writeHandle closeFile];
         if (error) {
             CPStateMechineLog(@"文件下载失败:%@ %s %zd",error.localizedDescription,__PRETTY_FUNCTION__, __LINE__);
-            if (![error.localizedDescription isEqualToString:@"cancelled"]) {
+            if ((error.code != NSURLErrorCancelled)) {
                 self.error = error.localizedDescription;
                 [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
-            }else {
+            }
+            /*
+            else {
                 
                 NSError *ownError = nil;
                 if (self.error.length && self.error) {
                     NSError *ownError = [NSError errorWithDomain:self.error code:0 userInfo:nil];
                 }
                 [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:ownError]];
-            }
+            }*/
         }else {
             [writeHandle closeFile];
             [self sendMessageType:MessageTypeEventTaskDone];
