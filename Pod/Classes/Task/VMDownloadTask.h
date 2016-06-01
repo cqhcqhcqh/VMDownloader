@@ -134,7 +134,7 @@ typedef NS_ENUM(NSUInteger, DownloadTaskLevel) {
 @property (readwrite, nonatomic, assign) MASK_NETWORK netWorkMode;
 @property (readwrite, nonatomic, assign) DownloadTaskState mState;
 #pragma mark -
-@property (readwrite, nonatomic, assign) CGFloat mSpeed;
+@property (readwrite, nonatomic, assign) UInt64 mSpeed;
 
 #pragma mark - 内部状态
 @property (readwrite, nonatomic, assign) DownloadTaskState mLastState;

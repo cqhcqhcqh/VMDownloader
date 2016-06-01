@@ -354,6 +354,7 @@ static NSMapTable *CACHE_TASKS_REF;
     
     @synchronized (self) {
         if (self.mState != self.mLastState) {
+            CPStateMechineLog(@"mState:%@  mLastState:%@",DownloadStateDesc[self.mState],DownloadStateDesc[self.mLastState]);
             [CPNotificationManager postNotificationWithName:kDownloadStateChange type:0 message:nil obj:self userInfo:@{kDownloadStateOldValue:@(self.mLastState),kDownloadStateNewValue:@(self.mState)}];
             self.mLastState = self.mState;
         }
@@ -486,7 +487,6 @@ static NSMapTable *CACHE_TASKS_REF;
     __block UInt64 lastTimeInterval = [[NSDate date] timeIntervalSince1970]*1000;
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]];
     VMDownloadHttp *downloadHttp = [[VMDownloadHttp alloc] init];
-    NSArray *array = nil;
     
     self.urlSessionDataTask = [downloadHttp downloadTaskWithRequest:request progress:^(NSData *data, int64_t totalBytesWritten,BOOL* stop) {
         if (!_isOnGoing) {
@@ -525,7 +525,7 @@ static NSMapTable *CACHE_TASKS_REF;
             
             if (deltaTimeInterval >= 1000) {
                 
-                self.mSpeed = (deltaProgress/deltaTimeInterval) * 1000.0f;//# bype/s
+                self.mSpeed = (deltaProgress* 1000.0f /deltaTimeInterval);//# bype/s
                 [self sendMessageDelayed:[CPMessage messageWithType:MessageTypeEventProgress] delay:1.0];
                 lastDownloadProgress = totalBytesWritten;
                 lastTimeInterval = currentTimeInterval;
