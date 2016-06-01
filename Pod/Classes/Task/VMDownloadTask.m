@@ -470,9 +470,8 @@ static NSMapTable *CACHE_TASKS_REF;
     } @catch (NSException *exception) {
         CPStateMechineLog(@"writeHandle创建失败 %@ %s %zd",exception.name,__PRETTY_FUNCTION__, __LINE__);
         self.error = exception.reason;
-        return;
-    } @finally {
-        
+        [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException]];
+        return;//不往下执行 函数processDownloadWithFilePath return出去
     }
     
     NSAssert(writeHandle, @"writeHandle is nil");
@@ -510,8 +509,6 @@ static NSMapTable *CACHE_TASKS_REF;
             NSAssert(self.urlSessionDataTask != nil, @"urlSessionDataTask is nil");
             [self.urlSessionDataTask cancel];
             return;
-        } @finally {
-            
         }
         
         if (self.retryCount != 0) {
@@ -547,15 +544,6 @@ static NSMapTable *CACHE_TASKS_REF;
                 self.error = error.localizedDescription;
                 [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:error]];
             }
-            /*
-            else {
-                
-                NSError *ownError = nil;
-                if (self.error.length && self.error) {
-                    NSError *ownError = [NSError errorWithDomain:self.error code:0 userInfo:nil];
-                }
-                [self sendMessage:[CPMessage messageWithType:MessageTypeEventDownloadException obj:ownError]];
-            }*/
         }else {
             [writeHandle closeFile];
             [self sendMessageType:MessageTypeEventTaskDone];
