@@ -717,6 +717,7 @@ static NSMapTable *CACHE_TASKS_REF;
         case MessageTypeEventProgress:
             //notify 下载进度
             [CPNotificationManager postNotificationWithName:kMessageTypeEventProgress type:0 message:nil obj:self.downloadTask];
+            [self.downloadTask saveTask];
             return YES;
             
         default:
