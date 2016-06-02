@@ -7,6 +7,7 @@
 //
 
 #import "VMDownloadHttp.h"
+#import "CPLoggerManager.h"
 #define DownloadTimeOutInterval 15
 
 @interface VMDownloadHttp ()<NSURLSessionDataDelegate>
@@ -77,12 +78,15 @@
         if (self.downloadProgress && !stopDownload) {
             self.downloadProgress(data,self.currentLength,&stopDownload);
         }
+    }else {
+        URLSessionLog(@"didReceiveData statusCode:%zd allHeaderFields:%@",response.statusCode,[response allHeaderFields]);
     }
 }
 
 // 请求完毕时调用, 如果error有值, 代表请求错误
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
+    URLSessionLog(@"didCompleteWithError %@",error);
     if (self.completionHandler) {
         self.completionHandler(task.response,error);
     }
@@ -91,6 +95,6 @@
 
 - (void)dealloc
 {
-    NSLog(@"%@ delloc",[self class]);
+    URLSessionLog(@"%@ delloc",[self class]);
 }
 @end

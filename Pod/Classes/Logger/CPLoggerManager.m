@@ -40,6 +40,11 @@ static NSMutableDictionary *_poolDict;
         [dbLogger addBlock:^(NSString * message) {
             NSLog(@"DataBase ===== > %@",message);
         }];
+        
+        CPLogger *urlSessionLogger = [URLSessionLogger getLogger];
+        [urlSessionLogger addBlock:^(NSString * message) {
+            NSLog(@"URLSession ===== > %@",message);
+        }];
     }
 }
 
@@ -227,5 +232,25 @@ static NSMutableDictionary *_poolDict;
     
 }
 
+@end
+
+
+
+@implementation URLSessionLogger
++ (void) printMessage:(NSString *)message, ... {
+    
+    //指向变参的指针
+    va_list list;
+    //使用第一个参数来初使化list指针
+    va_start(list, message);
+    [[self getLogger] printv:message list:list];
+    va_end(list);
+}
+
++ (CPLogger *) getLogger{
+    
+    return [CPLoggerManager getLoggerWithName:NSStringFromClass([self class])];
+    
+}
 
 @end

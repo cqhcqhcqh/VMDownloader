@@ -63,3 +63,10 @@ typedef void(^LoggerPrint)(NSString* message);
 + (CPLogger *) getLogger;
 + (void) printMessage:(NSString *)message, ...;
 @end
+
+
+#define URLSessionLog(...)[URLSessionLogger printMessage:__VA_ARGS__]
+@interface URLSessionLogger : NSObject
++ (CPLogger *) getLogger;
++ (void) printMessage:(NSString *)message, ...;
+@end
