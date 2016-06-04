@@ -446,6 +446,7 @@ static NSMapTable *CACHE_TASKS_REF;
                 if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
                     [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
                 }
+                [self addSkipBackupAttributeToItemAtPath:filePath];
                 [self processDownloadWithFilePath:filePath];
             }
         }];
@@ -455,6 +456,21 @@ static NSMapTable *CACHE_TASKS_REF;
         [self processDownloadWithFilePath:filePath];
     }
 }
+
+- (BOOL)addSkipBackupAttributeToItemAtPath:(NSString *) filePathString
+{
+    NSURL* URL= [NSURL fileURLWithPath: filePathString];
+    assert([[NSFileManager defaultManager] fileExistsAtPath: [URL path]]);
+    
+    NSError *error = nil;
+    BOOL success = [URL setResourceValue: [NSNumber numberWithBool: YES]
+                                  forKey: NSURLIsExcludedFromBackupKey error: &error];
+    if(!success){
+        CPStateMechineLog(@"Error excluding %@ from backup %@", [URL lastPathComponent], error);
+    }
+    return success;
+}
+
 
 - (void)processDownloadWithFilePath:(NSString *)filePath{
     
