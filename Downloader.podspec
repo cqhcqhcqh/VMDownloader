@@ -20,11 +20,11 @@ Pod::Spec.new do |s|
                         A description of the Pod more detailed than the summary. 就是对当前lib的详细功能的详细描述吧。我猜的
                        DESC
 
-  s.homepage         = "https://chengqihan@git.vmovier.cc/scm/~chengqihan/downloaderlib"
+  s.homepage         = "https://git.vmovier.cc/projects/IM3/repos/downloaderlib"
   # s.screenshots     = "www.example.com/screenshots_1", "www.example.com/screenshots_2"
   s.license          = 'MIT'
   s.author           = { "chengqihan" => "chengqihan@vmovier.com" }
-  s.source           = { :git => "https://chengqihan@git.vmovier.cc/scm/~chengqihan/downloaderlib.git", :tag => s.version.to_s }
+  s.source           = { :git => "https://chengqihan@git.vmovier.cc/scm/im3/downloaderlib.git", :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.platform     = :ios, '7.0'
