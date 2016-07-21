@@ -54,7 +54,11 @@ static NSMutableDictionary *MANAGERS;
 {
     if (self == [VMDownloaderManager class]) {
         MANAGERS = [NSMutableDictionary dictionary];
+#ifdef DEBUG
         [CPLoggerManager openLogger:YES];
+#else
+        
+#endif
     }
 }
 
