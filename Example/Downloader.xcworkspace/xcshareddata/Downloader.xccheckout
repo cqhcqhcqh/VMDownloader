@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>D0A9A7FF-FB92-40F7-8619-5E4F6883C524</string>
+	<key>IDESourceControlProjectName</key>
+	<string>Downloader</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>CC5EAC557CCC7D93D7C44FBEAB8E4FF47E4EC6FB</key>
+		<string>ssh://io.vmovier.cc:7999/~chengqihan/downloaderlib.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>Example/Downloader.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>CC5EAC557CCC7D93D7C44FBEAB8E4FF47E4EC6FB</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>ssh://io.vmovier.cc:7999/~chengqihan/downloaderlib.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>CC5EAC557CCC7D93D7C44FBEAB8E4FF47E4EC6FB</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>CC5EAC557CCC7D93D7C44FBEAB8E4FF47E4EC6FB</string>
+			<key>IDESourceControlWCCName</key>
+			<string>Downloader</string>
+		</dict>
+	</array>
+</dict>
+</plist>
